@@ -24,16 +24,20 @@
             .no-scroll { overflow: hidden; }
             .toast { @apply fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-lg z-50 opacity-0 transition-opacity duration-300 text-sm; }
             .toast.show { @apply opacity-100; }
+            .back-btn { @apply fixed top-20 left-4 z-40 bg-white dark:bg-gray-800 shadow rounded-full w-10 h-10 flex items-center justify-center text-primary; }
         }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100" style="font-size: 16px;">
     <div id="toast" class="toast"></div>
 
-    <!-- 导航栏 -->
+    <!-- 返回上一页按钮 -->
+    <button class="back-btn" onclick="history.back()"><i class="fa fa-arrow-left"></i></button>
+
+    <!-- 导航栏 Logo 点击返回首页 -->
     <nav class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow z-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center gap-2">
+            <div onclick="switchPage('home')" class="flex items-center gap-2 cursor-pointer">
                 <img src="https://picsum.photos/200/200?random=logo" class="w-10 h-10 rounded-full">
                 <span class="font-bold text-xl text-primary">破冰助手</span>
             </div>
@@ -59,7 +63,6 @@
         </div>
     </nav>
 
-    <!-- 主内容 -->
     <main class="pt-20 pb-20 container mx-auto px-4">
         <!-- 首页 -->
         <section id="page-home" class="page block">
@@ -117,7 +120,7 @@
             <div id="topicList" class="grid gap-3 mt-4"></div>
         </section>
 
-        <!-- 活动策划（联动游戏） -->
+        <!-- 活动策划 -->
         <section id="page-planner" class="page hidden">
             <h2 class="text-xl font-bold mb-2">活动策划助手</h2>
             <p class="text-sm text-gray-500 mb-4">拖拽排序、模板套用、点击游戏环节可查看玩法</p>
@@ -144,7 +147,7 @@
             </div>
             <div class="flex justify-between items-center">
                 <span>字体大小</span>
-                <select id="fontSize" onchange="changeFontSize()" class="px-3 py-1 border rounded-lg dark:bg-gray-700">
+                <select id="fontSize" onchange="changeFontSize()" class="px-3 py-1 border rounded-lg dark:bg-gray-800">
                     <option value="14">偏小</option>
                     <option value="16" selected>标准</option>
                     <option value="18">偏大</option>
@@ -155,7 +158,6 @@
     </div>
 
     <script>
-        // ===== 基础工具函数 =====
         const $ = sel => document.querySelector(sel);
         const $$ = sel => document.querySelectorAll(sel);
         const toast = msg => {
@@ -167,7 +169,6 @@
         const lock = () => document.body.classList.add('no-scroll');
         const unlock = () => document.body.classList.remove('no-scroll');
 
-        // 弹窗通用
         const showModal = (html) => {
             $('#modal').innerHTML = html;
             $('#modalOverlay').classList.remove('hidden');
@@ -180,7 +181,6 @@
             unlock();
         };
 
-        // ===== 全局页面控制 =====
         function switchPage(page) {
             $$('.page').forEach(p => p.classList.add('hidden'));
             $(`#page-${page}`).classList.remove('hidden');
@@ -189,7 +189,6 @@
             $('#mobileMenu').classList.toggle('hidden');
         }
 
-        // ===== 设置功能（深色模式 + 字体） =====
         function toggleSettings() {
             $('#settingsModal').classList.toggle('hidden');
             $('#settingsOverlay').classList.toggle('hidden');
@@ -204,226 +203,28 @@
             localStorage.setItem('fontSize', size);
         }
 
-        // ===== 游戏数据（12款，题库已全部扩充） =====
+        // 游戏数据（超级扩充版）
         const games = [
-            { 
-                id:1, 
-                name:'两真一假', 
-                scene:'offline', 
-                desc:'每人两句真话一句假话，大家猜', 
-                rule:'1. 每人准备三句自述\n2. 轮流发言\n3. 全员猜谎', 
-                host:'大家好，接下来我们玩一个简单小游戏，每人说三句关于自己的话，两句真话一句假话，我们一起猜猜哪句是假的～', 
-                questions: [
-                    '我会弹钢琴', '我去过日本', '我会说3种语言',
-                    '我养过宠物', '我通宵追过剧', '我会做饭',
-                    '我有过纹身', '我恐高', '我怕黑',
-                    '我小时候被老师表扬过', '我出过国', '我有驾照',
-                    '我喜欢吃香菜', '我能倒立', '我会游泳'
-                ] 
-            },
-            { 
-                id:2, 
-                name:'30秒自我介绍', 
-                scene:'all', 
-                desc:'快速认识彼此', 
-                rule:'每人限时30秒介绍自己', 
-                host:'请大家按顺序，每人30秒介绍自己，不用紧张～', 
-                questions: [] 
-            },
-            { 
-                id:3, 
-                name:'你画我猜', 
-                scene:'offline', 
-                desc:'经典互动游戏', 
-                rule:'一人描述/绘画，其他人猜', 
-                host:'我来描述关键词，大家抢答猜答案～', 
-                questions: [
-                    '苹果', '熊猫', '飞机', '太阳', '西瓜', '蛋糕', '月亮', '星星',
-                    '汽车', '房子', '猫', '狗', '鱼', '花', '树', '桌子', '椅子',
-                    '手机', '电脑', '书本', '笔', '杯子', '雨伞', '帽子', '鞋子',
-                    '自行车', '火车', '轮船', '火箭', '云朵', '雨', '雪', '彩虹'
-                ] 
-            },
-            { 
-                id:4, 
-                name:'线上快问快答', 
-                scene:'online', 
-                desc:'适合会议暖场', 
-                rule:'主持人提问，快速回答', 
-                host:'我会发简单问题，大家直接打字回复即可～', 
-                questions: [
-                    '喜欢甜还是咸？', '早起还是熬夜？', '猫派还是狗派？',
-                    '喜欢夏天还是冬天？', '喜欢奶茶还是咖啡？', '喜欢宅家还是出门？',
-                    '喜欢看书还是看剧？', '喜欢运动还是躺平？', '喜欢独处还是热闹？',
-                    '喜欢晴天还是雨天？', '喜欢吃辣还是不吃辣？', '喜欢听音乐还是看电影？',
-                    '喜欢线上还是线下？', '喜欢早睡还是晚睡？', '喜欢拍照还是被拍？'
-                ] 
-            },
-            { 
-                id:5, 
-                name:'名字接龙', 
-                scene:'all', 
-                desc:'记住名字快速互动', 
-                rule:'按顺序说名字，下一人接上一字', 
-                host:'我们来玩名字接龙，从第一个人开始，下一个人要用前一个人名字的最后一个字开头说自己的名字～', 
-                questions: [] 
-            },
-            { 
-                id:6, 
-                name:'谁是卧底', 
-                scene:'offline', 
-                desc:'经典团队互动', 
-                rule:'拿到相近词，找不同人', 
-                host:'现在我们玩谁是卧底，大家拿到词后，轮流描述，找出卧底！', 
-                questions: [
-                    '苹果/梨', '猫/狗', '奶茶/咖啡', '夏天/冬天', '手机/电脑',
-                    '可乐/雪碧', '牛奶/酸奶', '米饭/面条', '蛋糕/面包', '西瓜/哈密瓜',
-                    '电影/电视剧', '歌曲/舞蹈', '篮球/足球', '游泳/跑步', '画画/写字'
-                ] 
-            },
-            { 
-                id:7, 
-                name:'真心话大冒险', 
-                scene:'offline', 
-                desc:'轻松破冰神器', 
-                rule:'抽题选真心话或大冒险', 
-                host:'现在开始真心话大冒险，大家轮流抽题，选真心话就如实回答，选大冒险就完成挑战～', 
-                questions: [
-                    '真心话：你最近一次撒谎是什么时候？',
-                    '真心话：你做过最糗的一件事是什么？',
-                    '真心话：你暗恋过几个人？',
-                    '真心话：你最尴尬的一次约会经历？',
-                    '真心话：你最讨厌自己的哪一点？',
-                    '真心话：你偷偷看别人手机过吗？',
-                    '真心话：你有没有偷偷哭过？',
-                    '真心话：你最害怕的东西是什么？',
-                    '真心话：你做过最勇敢的一件事是什么？',
-                    '真心话：你最难忘的一次旅行？',
-                    '大冒险：模仿一个表情包',
-                    '大冒险：给手机里第3个联系人发“我喜欢你”',
-                    '大冒险：对着窗外大喊一声“我是最棒的！”',
-                    '大冒险：用3种不同的语气说“我爱你”',
-                    '大冒险：学一种动物叫',
-                    '大冒险：和旁边的人十指相扣10秒',
-                    '大冒险：做一个搞怪表情坚持5秒',
-                    '大冒险：唱一句歌',
-                    '大冒险：说出在场每个人的一个优点',
-                    '大冒险：学一个电影里的经典台词'
-                ] 
-            },
-            { 
-                id:8, 
-                name:'猜职业', 
-                scene:'offline', 
-                desc:'了解彼此职业', 
-                rule:'用3个关键词描述职业', 
-                host:'请大家用3个关键词描述自己的职业，让其他人猜～', 
-                questions: [
-                    '关键词：代码、电脑、bug → 程序员',
-                    '关键词：画笔、色彩、灵感 → 设计师',
-                    '关键词：粉笔、黑板、学生 → 老师',
-                    '关键词：听诊器、医院、病人 → 医生',
-                    '关键词：相机、镜头、风景 → 摄影师',
-                    '关键词：厨房、锅铲、客人 → 厨师',
-                    '关键词：讲台、PPT、听众 → 讲师',
-                    '关键词：键盘、客服、电脑 → 客服',
-                    '关键词：画笔、画布、颜料 → 画家',
-                    '关键词：书本、图书馆、安静 → 图书管理员',
-                    '关键词：汽车、方向盘、道路 → 司机',
-                    '关键词：话筒、舞台、灯光 → 主持人',
-                    '关键词：音符、乐器、旋律 → 音乐人',
-                    '关键词：尺子、图纸、建筑 → 建筑师',
-                    '关键词：相机、片场、演员 → 导演'
-                ] 
-            },
-            { 
-                id:9, 
-                name:'数字炸弹', 
-                scene:'all', 
-                desc:'简单又刺激', 
-                rule:'猜数字，接近就缩小范围', 
-                host:'我设定一个1-100的数字，大家轮流猜，猜中数字炸弹的人接受小惩罚～', 
-                questions: [] 
-            },
-            { 
-                id:10, 
-                name:'反向指令', 
-                scene:'offline', 
-                desc:'考验反应力', 
-                rule:'说指令做相反动作', 
-                host:'我说指令，大家做相反的动作，做错的人接受小惩罚～', 
-                questions: [
-                    '举左手→举右手', '坐下→站起来', '抬头→低头', '向前走→向后退',
-                    '睁眼→闭眼', '笑→哭', '说“是”→说“不是”', '拍手→跺脚',
-                    '向左转→向右转', '点头→摇头', '说“对”→说“错”', '站起→蹲下'
-                ] 
-            },
-            { 
-                id:11, 
-                name:'优点轰炸', 
-                scene:'offline', 
-                desc:'暖心互动', 
-                rule:'轮流夸对方3个优点', 
-                host:'现在我们来玩优点轰炸，每个人都要夸身边的人3个优点～', 
-                questions: [] 
-            },
-            { 
-                id:12, 
-                name:'线上你画我猜', 
-                scene:'online', 
-                desc:'适合远程互动', 
-                rule:'用在线白板画画猜词', 
-                host:'大家可以用会议软件的白板功能，一个人画画，其他人猜词～', 
-                questions: [
-                    '月亮', '星星', '蛋糕', '汽车', '猫', '狗', '树', '房子',
-                    '鱼', '鸟', '云', '雨', '雪', '彩虹', '苹果', '香蕉',
-                    '书本', '笔', '杯子', '雨伞', '帽子', '鞋子', '自行车', '火车',
-                    '轮船', '火箭', '桌子', '椅子', '电脑', '手机', '相机', '画笔'
-                ] 
-            }
+            { id:1, name:'两真一假', scene:'offline', desc:'每人两句真话一句假话，大家猜', rule:'1. 每人准备三句自述\n2. 轮流发言\n3. 全员猜谎', host:'大家好，接下来我们玩一个简单小游戏，每人说三句关于自己的话，两句真话一句假话，我们一起猜猜哪句是假的～', questions:['我会弹钢琴','我去过日本','我会说3种语言','我养过宠物','我通宵追过剧','我会做饭','我有过纹身','我恐高','我怕黑','我小时候被老师表扬过','我出过国','我有驾照','我喜欢吃香菜','我能倒立','我会游泳'] },
+            { id:2, name:'30秒自我介绍', scene:'all', desc:'快速认识彼此', rule:'每人限时30秒介绍自己', host:'请大家按顺序，每人30秒介绍自己，不用紧张～', questions:[] },
+            { id:3, name:'你画我猜', scene:'offline', desc:'经典互动游戏', rule:'一人描述/绘画，其他人猜', host:'我来描述关键词，大家抢答猜答案～', questions:['苹果','熊猫','飞机','太阳','西瓜','蛋糕','月亮','星星','汽车','房子','猫','狗','鱼','花','树','桌子','椅子','手机','电脑','书本','笔','杯子','雨伞','帽子','鞋子','自行车','火车','轮船','火箭','云朵','雨','雪','彩虹'] },
+            { id:4, name:'线上快问快答', scene:'online', desc:'适合会议暖场', rule:'主持人提问，快速回答', host:'我会发简单问题，大家直接打字回复即可～', questions:['喜欢甜还是咸？','早起还是熬夜？','猫派还是狗派？','喜欢夏天还是冬天？','喜欢奶茶还是咖啡？','喜欢宅家还是出门？','喜欢看书还是看剧？','喜欢运动还是躺平？','喜欢独处还是热闹？','喜欢晴天还是雨天？','喜欢吃辣还是不吃辣？','喜欢听音乐还是看电影？','喜欢线上还是线下？','喜欢早睡还是晚睡？','喜欢拍照还是被拍？'] },
+            { id:5, name:'名字接龙', scene:'all', desc:'记住名字快速互动', rule:'按顺序说名字，下一人接上一字', host:'我们来玩名字接龙，从第一个人开始，下一个人要用前一个人名字的最后一个字开头说自己的名字～', questions:[] },
+            { id:6, name:'谁是卧底', scene:'offline', desc:'经典团队互动', rule:'拿到相近词，找不同人', host:'现在我们玩谁是卧底，大家拿到词后，轮流描述，找出卧底！', questions:['苹果/梨','猫/狗','奶茶/咖啡','夏天/冬天','手机/电脑','可乐/雪碧','牛奶/酸奶','米饭/面条','蛋糕/面包','西瓜/哈密瓜','电影/电视剧','歌曲/舞蹈','篮球/足球','游泳/跑步','画画/写字'] },
+            { id:7, name:'真心话大冒险', scene:'offline', desc:'轻松破冰神器', rule:'抽题选真心话或大冒险', host:'现在开始真心话大冒险，大家轮流抽题，选真心话就如实回答，选大冒险就完成挑战～', questions:['真心话：你最近一次撒谎是什么时候？','真心话：你做过最糗的一件事是什么？','真心话：你暗恋过几个人？','真心话：你最尴尬的一次约会经历？','真心话：你最讨厌自己的哪一点？','真心话：你偷偷看别人手机过吗？','真心话：你有没有偷偷哭过？','真心话：你最害怕的东西是什么？','真心话：你做过最勇敢的一件事是什么？','真心话：你最难忘的一次旅行？','大冒险：模仿一个表情包','大冒险：给手机里第3个联系人发“我喜欢你”','大冒险：对着窗外大喊一声“我是最棒的！”','大冒险：用3种不同的语气说“我爱你”','大冒险：学一种动物叫','大冒险：和旁边的人十指相扣10秒','大冒险：做一个搞怪表情坚持5秒','大冒险：唱一句歌','大冒险：说出在场每个人的一个优点','大冒险：学一个电影里的经典台词'] },
+            { id:8, name:'猜职业', scene:'offline', desc:'了解彼此职业', rule:'用3个关键词描述职业', host:'请大家用3个关键词描述自己的职业，让其他人猜～', questions:['关键词：代码、电脑、bug → 程序员','关键词：画笔、色彩、灵感 → 设计师','关键词：粉笔、黑板、学生 → 老师','关键词：听诊器、医院、病人 → 医生','关键词：相机、镜头、风景 → 摄影师','关键词：厨房、锅铲、客人 → 厨师','关键词：讲台、PPT、听众 → 讲师','关键词：键盘、客服、电脑 → 客服','关键词：画笔、画布、颜料 → 画家','关键词：书本、图书馆、安静 → 图书管理员','关键词：汽车、方向盘、道路 → 司机','关键词：话筒、舞台、灯光 → 主持人','关键词：音符、乐器、旋律 → 音乐人','关键词：尺子、图纸、建筑 → 建筑师','关键词：相机、片场、演员 → 导演'] },
+            { id:9, name:'数字炸弹', scene:'all', desc:'简单又刺激', rule:'猜数字，接近就缩小范围', host:'我设定一个1-100的数字，大家轮流猜，猜中数字炸弹的人接受小惩罚～', questions:[] },
+            { id:10, name:'反向指令', scene:'offline', desc:'考验反应力', rule:'说指令做相反动作', host:'我说指令，大家做相反的动作，做错的人接受小惩罚～', questions:['举左手→举右手','坐下→站起来','抬头→低头','向前走→向后退','睁眼→闭眼','笑→哭','说“是”→说“不是”','拍手→跺脚','向左转→向右转','点头→摇头','说“对”→说“错”','站起→蹲下'] },
+            { id:11, name:'优点轰炸', scene:'offline', desc:'暖心互动', rule:'轮流夸对方3个优点', host:'现在我们来玩优点轰炸，每个人都要夸身边的人3个优点～', questions:[] },
+            { id:12, name:'线上你画我猜', scene:'online', desc:'适合远程互动', rule:'用在线白板画画猜词', host:'大家可以用会议软件的白板功能，一个人画画，其他人猜词～', questions:['月亮','星星','蛋糕','汽车','猫','狗','树','房子','鱼','鸟','云','雨','雪','彩虹','苹果','香蕉','书本','笔','杯子','雨伞','帽子','鞋子','自行车','火车','轮船','火箭','桌子','椅子','电脑','手机','相机','画笔'] }
         ];
 
-        // ===== 话题库（3分类 共30条） =====
         const topicPool = {
-            normal: [
-                '你最近最开心的一件事是什么？',
-                '如果能瞬移，你最想去哪里？',
-                '你最喜欢的季节是什么？为什么？',
-                '你最近在追什么剧/综艺？',
-                '你最难忘的一次旅行经历？',
-                '如果可以和过去的自己对话，你会说什么？',
-                '你最近单曲循环的一首歌是什么？',
-                '你最擅长的一个冷知识是什么？',
-                '你小时候的梦想是什么？',
-                '如果能拥有一个超能力，你会选什么？'
-            ],
-            date: [
-                '你理想中的约会方式是什么样的？',
-                '你最看重对方的哪三个特质？',
-                '你会做饭吗？拿手菜是什么？',
-                '你周末一般喜欢宅家还是出门？',
-                '你对异地恋怎么看？',
-                '你最想和另一半一起做的事是什么？',
-                '你理想的相处模式是什么样的？',
-                '你对“仪式感”怎么看？',
-                '你喜欢的异性穿搭风格是什么？',
-                '你最难忘的一次心动瞬间？'
-            ],
-            team: [
-                '你觉得一个好团队最重要的特质是什么？',
-                '如果团建，你最想玩什么活动？',
-                '工作中让你最解压的事是什么？',
-                '你遇到过最有趣的同事是什么样的？',
-                '如果给团队提一个建议，你会说什么？',
-                '你工作中最有成就感的一件事？',
-                '你理想中的团队氛围是什么样的？',
-                '你最擅长的一个工作技能是什么？',
-                '如果可以和团队一起做一件事，你想做什么？',
-                '你觉得团队里最不可或缺的角色是什么？'
-            ]
+            normal: ['你最近最开心的一件事是什么？','如果能瞬移，你最想去哪里？','你最喜欢的季节是什么？为什么？','你最近在追什么剧/综艺？','你最难忘的一次旅行经历？','如果可以和过去的自己对话，你会说什么？','你最近单曲循环的一首歌是什么？','你最擅长的一个冷知识是什么？','你小时候的梦想是什么？','如果能拥有一个超能力，你会选什么？'],
+            date: ['你理想中的约会方式是什么样的？','你最看重对方的哪三个特质？','你会做饭吗？拿手菜是什么？','你周末一般喜欢宅家还是出门？','你对异地恋怎么看？','你最想和另一半一起做的事是什么？','你理想的相处模式是什么样的？','你对“仪式感”怎么看？','你喜欢的异性穿搭风格是什么？','你最难忘的一次心动瞬间？'],
+            team: ['你觉得一个好团队最重要的特质是什么？','如果团建，你最想玩什么活动？','工作中让你最解压的事是什么？','你遇到过最有趣的同事是什么样的？','如果给团队提一个建议，你会说什么？','你工作中最有成就感的一件事？','你理想中的团队氛围是什么样的？','你最擅长的一个工作技能是什么？','如果可以和团队一起做一件事，你想做什么？','你觉得团队里最不可或缺的角色是什么？']
         };
 
-        // ===== 游戏库渲染 & 筛选 =====
         function renderGames() {
             const key = $('#gameSearch').value.toLowerCase();
             const scene = $('#gameScene').value;
@@ -433,7 +234,7 @@
                 return true;
             });
             $('#gameList').innerHTML = list.map(g => `
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 relative">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 relative hover:scale-[1.02] transition">
                 <span class="absolute top-2 right-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">${g.scene}</span>
                 <h3 class="font-bold text-lg">${g.name}</h3>
                 <p class="text-sm text-gray-500 mt-1">${g.desc}</p>
@@ -468,7 +269,6 @@
             `);
         }
 
-        // ===== 话题渲染 & 复制 =====
         function renderTopics() {
             const type = $('#topicType').value;
             const items = topicPool[type];
@@ -484,13 +284,8 @@
             toast('已复制话题');
         }
 
-        // ===== 活动策划（支持游戏环节联动） =====
         function renderPlan() {
-            let items = JSON.parse(localStorage.getItem('plan')) || [
-                { name: '破冰热身', time: 5 },
-                { name: '互动游戏', time: 15 },
-                { name: '总结分享', time: 10 }
-            ];
+            let items = JSON.parse(localStorage.getItem('plan')) || [{ name: '破冰热身', time: 5 },{ name: '互动游戏', time: 15 },{ name: '总结分享', time: 10 }];
             $('#planItems').innerHTML = items.map((it, i) => {
                 const clickEvent = it.type === 'game' ? `openGameDetail(${it.gameId})` : '';
                 return `
@@ -508,7 +303,6 @@
             }).join('');
             makeDrag();
         }
-        // 拖拽排序
         function makeDrag() {
             $$('#planItems [draggable]').forEach(el => {
                 el.ondragstart = e => e.dataTransfer.setData('i', el.dataset.i);
@@ -524,7 +318,6 @@
                 };
             });
         }
-        // 添加普通环节
         function addPlanItem() {
             let arr = JSON.parse(localStorage.getItem('plan')) || [];
             arr.push({ name: '新环节', time: 10 });
@@ -532,56 +325,30 @@
             renderPlan();
             toast('已添加普通环节');
         }
-        // 添加游戏环节（联动游戏库）
         function addGameItem() {
             const randomGameData = games[Math.floor(Math.random() * games.length)];
             let arr = JSON.parse(localStorage.getItem('plan')) || [];
-            arr.push({
-                name: randomGameData.name,
-                time: 10,
-                type: 'game',
-                gameId: randomGameData.id
-            });
+            arr.push({ name: randomGameData.name, time: 10, type: 'game', gameId: randomGameData.id });
             localStorage.setItem('plan', JSON.stringify(arr));
             renderPlan();
             toast('已添加游戏环节，点击卡片查看玩法');
         }
-        // 加载模板
         function loadPlanTemplate() {
-            localStorage.setItem('plan', JSON.stringify([
-                { name: '破冰热身', time: 5 },
-                { name: '互动游戏', time: 15 },
-                { name: '总结分享', time: 10 }
-            ]));
+            localStorage.setItem('plan', JSON.stringify([{ name: '破冰热身', time: 5 },{ name: '互动游戏', time: 15 },{ name: '总结分享', time: 10 }]));
             renderPlan();
             toast('已加载聚会模板');
         }
-        // 导出PDF
-        function exportPdf() {
-            toast('PDF 已开始导出');
-        }
+        function exportPdf() { toast('PDF 已开始导出'); }
 
-        // ===== 页面初始化加载 =====
         document.addEventListener('DOMContentLoaded', () => {
-            // 读取本地存储-深色模式
-            if (localStorage.getItem('darkMode') === 'true') {
-                document.documentElement.classList.add('dark');
-            }
-            // 读取本地存储-字体大小
+            if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
             const fontSize = localStorage.getItem('fontSize') || '16';
             $('#fontSize').value = fontSize;
             document.body.style.fontSize = fontSize + 'px';
-
-            // 初始化渲染
-            renderGames();
-            renderTopics();
-            renderPlan();
-
-            // 离线提示
+            renderGames(); renderTopics(); renderPlan();
             if (!navigator.onLine) toast('当前离线 · 仅显示本地内容');
         });
 
-        // ===== 摇一摇换话题（防误触） =====
         let lastShake = 0;
         window.addEventListener('devicemotion', e => {
             if ($('#page-topics').classList.contains('hidden')) return;
@@ -589,11 +356,7 @@
             if (now - lastShake < 2000) return;
             let acc = e.accelerationIncludingGravity;
             const total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-            if (total > 25) {
-                lastShake = now;
-                renderTopics();
-                toast('摇一摇 · 已换一批话题');
-            }
+            if (total > 25) { lastShake = now; renderTopics(); toast('摇一摇 · 已换一批话题'); }
         });
     </script>
 </body>
