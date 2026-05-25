@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>破冰助手 - 全场景聚会破冰工具</title>
+    <title>聚会桌游助手 | 阿瓦隆+狼人杀 身份+全投票</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -13,449 +13,500 @@
                 extend: {
                     colors: {
                         primary: '#FF6B35',
-                        secondary: '#4F5D75'
+                        agree: '#22c55e',
+                        disagree: '#ef4444',
+                        success: '#3b82f6',
+                        fail: '#f97316',
+                        vote: '#8b5cf6'
                     }
                 }
             }
         }
     </script>
-    <style type="text/tailwindcss">
-        @layer utilities {
-            .no-scroll { overflow: hidden; }
-            .toast { @apply fixed bottom-10 left-1/2 -translate-x-1/2 bg-black/80 text-white px-4 py-2 rounded-lg z-50 opacity-0 transition-opacity duration-300 text-sm; }
-            .toast.show { @apply opacity-100; }
-            .back-btn { @apply fixed top-20 left-4 z-40 bg-white dark:bg-gray-800 shadow rounded-full w-10 h-10 flex items-center justify-center text-primary; }
+    <style>
+        .toast {
+            position: fixed;
+            bottom: 10vh;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
+        .toast.show { opacity: 1; }
+        .back-btn {
+            position: fixed;
+            top: 80px;
+            left: 12px;
+            z-index: 40;
+            background: #fff;
+            border-radius: 999px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FF6B35;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .dark .back-btn { background: #1f2937; }
+        .page { display: none; }
+        .page.block { display: block; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100" style="font-size: 16px;">
-    <div id="toast" class="toast"></div>
+    <div class="toast" id="toast"></div>
+    <a class="back-btn" href="javascript:history.back()"><i class="fa fa-arrow-left"></i></a>
 
-    <!-- 返回上一页按钮 -->
-    <button class="back-btn" onclick="history.back()"><i class="fa fa-arrow-left"></i></button>
-
-    <!-- 导航栏 Logo 点击返回首页 -->
+    <!-- 顶部导航 -->
     <nav class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow z-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div onclick="switchPage('home')" class="flex items-center gap-2 cursor-pointer">
                 <img src="https://picsum.photos/200/200?random=logo" class="w-10 h-10 rounded-full">
-                <span class="font-bold text-xl text-primary">破冰助手</span>
+                <span class="font-bold text-xl text-primary">桌游助手</span>
             </div>
             <div class="hidden md:flex gap-5 items-center">
-                <button onclick="switchPage('home')" class="font-medium hover:text-primary">首页</button>
-                <button onclick="switchPage('games')" class="font-medium hover:text-primary">游戏库</button>
-                <button onclick="switchPage('topics')" class="font-medium hover:text-primary">话题</button>
-                <button onclick="switchPage('planner')" class="font-medium hover:text-primary">活动策划</button>
-                <button onclick="randomGame()" class="bg-primary text-white px-4 py-2 rounded-full text-sm hover:bg-opacity-90">随机推荐</button>
-                <button onclick="toggleSettings()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><i class="fa fa-cog"></i></button>
+                <button onclick="switchPage('home')" class="hover:text-primary">身份分配</button>
+                <button onclick="switchPage('vote')" class="hover:text-primary">投票大厅</button>
+                <button onclick="switchPage('rule')" class="hover:text-primary">游戏规则</button>
             </div>
             <div class="md:hidden flex items-center gap-3">
-                <button onclick="toggleSettings()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><i class="fa fa-cog"></i></button>
-                <button onclick="toggleMobileMenu()" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><i class="fa fa-bars"></i></button>
+                <button onclick="switchPage('home')" class="p-2">身份</button>
+                <button onclick="switchPage('vote')" class="p-2">投票</button>
+                <button onclick="switchPage('rule')" class="p-2">规则</button>
             </div>
-        </div>
-        <div id="mobileMenu" class="hidden md:hidden border-t dark:border-gray-700 p-3 space-y-2">
-            <button onclick="switchPage('home'); toggleMobileMenu();" class="block w-full py-2 text-left hover:text-primary">首页</button>
-            <button onclick="switchPage('games'); toggleMobileMenu();" class="block w-full py-2 text-left hover:text-primary">游戏库</button>
-            <button onclick="switchPage('topics'); toggleMobileMenu();" class="block w-full py-2 text-left hover:text-primary">话题</button>
-            <button onclick="switchPage('planner'); toggleMobileMenu();" class="block w-full py-2 text-left hover:text-primary">活动策划</button>
-            <button onclick="randomGame(); toggleMobileMenu();" class="bg-primary text-white w-full py-2 rounded-full text-sm hover:bg-opacity-90">随机推荐</button>
         </div>
     </nav>
 
-    <main class="pt-20 pb-20 container mx-auto px-4">
-        <!-- 首页 -->
+    <main class="pt-20 pb-24 px-4 container mx-auto">
+        <!-- 页面1：身份分配（核心） -->
         <section id="page-home" class="page block">
-            <div class="text-center mt-6 mb-10">
-                <h1 class="text-3xl md:text-4xl font-bold mb-3">零尴尬破冰 · 全场景适用</h1>
-                <p class="text-gray-500 max-w-xl mx-auto">聚会、团建、相亲、新班级、线下暖场，自带随机身份分配</p>
+            <div class="text-center mt-6 mb-8">
+                <h1 class="text-2xl font-bold mb-2">身份随机分配</h1>
+                <p class="text-sm text-gray-500">4位验证码 | 3~20人 | 每人独立查看身份</p>
             </div>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div onclick="switchPage('games')" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center cursor-pointer hover:shadow-lg transition">
-                    <div class="text-3xl text-primary mb-3"><i class="fa fa-gamepad"></i></div>
-                    <h3 class="font-bold text-lg mb-1">精品破冰游戏</h3>
-                    <p class="text-sm text-gray-500">规则+题库+随机身份分配</p>
+
+            <!-- 主持人区域 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
+                <h3 class="font-bold mb-3 text-primary">🎮 主持人 · 开局设置</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm">选择游戏</label>
+                        <select id="hostGameSel" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                            <option value="avalon">阿瓦隆</option>
+                            <option value="werewolf">狼人杀</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-sm">参与人数 (3~20人)</label>
+                        <input type="number" id="hostPlayerNum" min="3" max="20" value="6" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                    </div>
+                    <button onclick="createGameRole()" class="w-full py-2 bg-primary text-white rounded-lg">生成身份 & 获取4位验证码</button>
                 </div>
-                <div onclick="switchPage('topics')" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center cursor-pointer hover:shadow-lg transition">
-                    <div class="text-3xl text-primary mb-3"><i class="fa fa-comments"></i></div>
-                    <h3 class="font-bold text-lg mb-1">智能话题生成</h3>
-                    <p class="text-sm text-gray-500">点击复制 · 摇一摇切换</p>
+                <div id="hostCodeBox" class="mt-4 hidden">
+                    <p class="text-sm">本局4位验证码：</p>
+                    <div class="text-xl font-bold text-center py-2 bg-gray-100 dark:bg-gray-700 rounded my-2" id="gameCode"></div>
                 </div>
-                <div onclick="switchPage('planner')" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center cursor-pointer hover:shadow-lg transition">
-                    <div class="text-3xl text-primary mb-3"><i class="fa fa-calendar-check"></i></div>
-                    <h3 class="font-bold text-lg mb-1">活动流程策划</h3>
-                    <p class="text-sm text-gray-500">拖拽排序 · 模板套用</p>
+            </div>
+
+            <!-- 玩家区域 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+                <h3 class="font-bold mb-3">👤 玩家 · 查看个人身份</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm">输入4位验证码</label>
+                        <input type="text" id="userCode" placeholder="4位数字" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                    </div>
+                    <div>
+                        <label class="text-sm">你的编号 (1~20)</label>
+                        <input type="number" id="userNum" min="1" max="20" placeholder="入座顺序编号" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                    </div>
+                    <button onclick="getMyRole()" class="w-full py-2 bg-green-500 text-white rounded-lg">查看我的身份</button>
+                </div>
+                <div id="myRoleBox" class="mt-4 hidden p-3 rounded bg-green-100 dark:bg-green-900 text-center">
+                    <p class="text-sm">你的身份：</p>
+                    <p class="text-2xl font-bold text-primary mt-1" id="myRole"></p>
+                    <p class="text-xs mt-2 text-gray-600 dark:text-gray-300">牢记身份，请勿告知他人</p>
                 </div>
             </div>
         </section>
 
-        <!-- 游戏库 -->
-        <section id="page-games" class="page hidden">
-            <h2 class="text-xl font-bold mb-2">破冰游戏库</h2>
-            <p class="text-sm text-gray-500 mb-4">支持搜索、筛选、规则查看、手机随机分配身份</p>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <input id="gameSearch" placeholder="搜索游戏..." class="flex-1 px-3 py-2 rounded-lg border dark:bg-gray-800">
-                <select id="gameScene" class="px-3 py-2 border rounded-lg dark:bg-gray-800">
-                    <option value="all">全部场景</option>
-                    <option value="offline">线下聚会</option>
-                    <option value="online">线上会议</option>
-                </select>
-                <button onclick="resetGameFilter()" class="px-3 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm">重置</button>
+        <!-- 页面2：投票大厅（阿瓦隆 + 狼人杀 全投票） -->
+        <section id="page-vote" class="page hidden">
+            <div class="text-center mt-6 mb-4">
+                <h2 class="text-xl font-bold">统一投票大厅</h2>
+                <p class="text-sm text-gray-500">阿瓦隆/狼人杀 全部投票功能</p>
             </div>
-            <div id="gameList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"></div>
+
+            <!-- 主持人：发起各类投票 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
+                <h3 class="font-bold mb-3 text-primary">🎮 主持人 · 发起投票</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm">当前游戏</label>
+                        <select id="voteGameSel" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                            <option value="avalon">阿瓦隆</option>
+                            <option value="werewolf">狼人杀</option>
+                        </select>
+                    </div>
+
+                    <!-- 阿瓦隆专用 -->
+                    <div id="avalonVoteCtrl">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-sm">任务轮次(1~5)</label>
+                                <input type="number" id="roundNum" min="1" max="5" value="1" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                            </div>
+                            <div>
+                                <label class="text-sm">上车编号</label>
+                                <input type="text" id="teamNums" placeholder="1 3 5" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button onclick="startTeamVote()" class="py-2 bg-blue-500 text-white rounded-lg">发起组队投票</button>
+                            <button onclick="startQuestVote()" class="py-2 bg-orange-500 text-white rounded-lg">发起任务投票</button>
+                        </div>
+                    </div>
+
+                    <!-- 狼人杀专用 -->
+                    <div id="werewolfVoteCtrl" class="hidden space-y-2">
+                        <button onclick="startSheriffVote()" class="w-full py-2 bg-vote text-white rounded-lg">开启【警长竞选投票】</button>
+                        <div>
+                            <label class="text-sm">放逐目标编号(多个空格分隔)</label>
+                            <input type="text" id="voteTargetNums" placeholder="1 2 4" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                        </div>
+                        <button onclick="startOutVote()" class="w-full py-2 bg-red-500 text-white rounded-lg">开启【白天放逐投票】</button>
+                    </div>
+                </div>
+
+                <!-- 投票码 & 结果展示 -->
+                <div id="voteCodeBox" class="mt-4 hidden">
+                    <p class="text-sm">本轮投票码：<span id="voteCode" class="font-bold text-lg"></span></p>
+                </div>
+                <div id="voteResultBox" class="mt-4 hidden p-3 rounded bg-gray-100 dark:bg-gray-700 text-sm">
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+
+            <!-- 玩家：投票操作区 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+                <h3 class="font-bold mb-3">👤 玩家 · 参与投票</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-sm">输入本轮投票码</label>
+                        <input type="text" id="userVoteCode" placeholder="投票码" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
+                    </div>
+
+                    <!-- 阿瓦隆投票按钮 -->
+                    <div id="avalonVoteBtn">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="voteAgree()" class="py-3 agree text-white rounded-lg font-bold">✅ 同意队伍</button>
+                            <button onclick="voteDisagree()" class="py-3 disagree text-white rounded-lg font-bold">❌ 不同意</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button onclick="voteSuccess()" class="py-3 success text-white rounded-lg font-bold">✅ 任务成功</button>
+                            <button onclick="voteFail()" class="py-3 fail text-white rounded-lg font-bold">❌ 任务失败</button>
+                        </div>
+                    </div>
+
+                    <!-- 狼人杀投票按钮 -->
+                    <div id="werewolfVoteBtn" class="hidden space-y-2">
+                        <p class="text-xs text-gray-500">警长竞选：选择支持玩家</p>
+                        <div id="sheriffBtnBox" class="grid grid-cols-3 gap-2"></div>
+                        <p class="text-xs text-gray-500 mt-2">放逐投票：选择投出玩家 / 弃票</p>
+                        <div id="outBtnBox" class="grid grid-cols-3 gap-2"></div>
+                    </div>
+                </div>
+            </div>
         </section>
 
-        <!-- 话题生成器 -->
-        <section id="page-topics" class="page hidden">
-            <h2 class="text-xl font-bold mb-2">话题生成器</h2>
-            <p class="text-sm text-gray-500 mb-4">点击复制 · 摇一摇换一批 · 聚会不冷场</p>
-            <div class="flex gap-2 mb-4">
-                <select id="topicType" class="px-3 py-2 border rounded-lg dark:bg-gray-800">
-                    <option value="normal">轻松聊天</option>
-                    <option value="date">相亲交友</option>
-                    <option value="team">团建氛围</option>
-                </select>
-                <button onclick="renderTopics()" class="bg-primary text-white px-4 py-2 rounded-full text-sm hover:bg-opacity-90">生成话题</button>
+        <!-- 页面3：游戏规则 -->
+        <section id="page-rule" class="page hidden">
+            <h2 class="text-xl font-bold mb-4">游戏简要规则</h2>
+            <div class="space-y-4">
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
+                    <h3 class="font-bold">🔮 阿瓦隆</h3>
+                    <p class="text-sm mt-2">好人阵营：梅林、派西维尔、忠臣；坏人阵营：莫德雷德、刺客、莫甘娜、邪恶爪牙。<br>流程：选队伍→全员投票同意/反对→任务玩家投成功/失败。<br>胜利：好人3任务成功+梅林不被刺杀；坏人3任务失败或刺杀梅林成功。</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
+                    <h3 class="font-bold">🐺 狼人杀</h3>
+                    <p class="text-sm mt-2">角色：狼人、平民、预言家、女巫、猎人。<br>流程：夜晚狼人刀人 → 白天【警长竞选投票】→ 发言 → 【放逐投票】投出玩家。<br>胜利：好人投出所有狼人；狼人杀光好人。</p>
+                </div>
             </div>
-            <div id="topicList" class="grid gap-3 mt-4"></div>
-        </section>
-
-        <!-- 活动策划 -->
-        <section id="page-planner" class="page hidden">
-            <h2 class="text-xl font-bold mb-2">活动策划助手</h2>
-            <p class="text-sm text-gray-500 mb-4">拖拽排序、模板套用、点击游戏查看玩法</p>
-            <button onclick="loadPlanTemplate()" class="mb-4 px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full text-sm hover:bg-opacity-90">套用聚会模板</button>
-            <div id="planItems" class="grid gap-3 mt-2"></div>
-            <button onclick="addGameItem()" class="mt-4 w-full py-2 bg-primary text-white rounded-full hover:bg-opacity-90">添加游戏环节</button>
-            <button onclick="addPlanItem()" class="mt-2 w-full py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-opacity-90">添加普通环节</button>
-            <button onclick="exportPdf()" class="mt-3 w-full py-2 bg-red-100 dark:bg-red-900 rounded-lg hover:bg-opacity-90">导出PDF</button>
         </section>
     </main>
 
-    <!-- 游戏详情弹窗 -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="closeModal()"></div>
-    <div id="modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-md max-h-[80vh] overflow-auto bg-white dark:bg-gray-800 rounded-xl p-5 z-50 hidden"></div>
-
-    <!-- 设置弹窗 -->
-    <div id="settingsOverlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="toggleSettings()"></div>
-    <div id="settingsModal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-white dark:bg-gray-800 rounded-xl p-5 z-50 hidden">
-        <h3 class="font-bold text-xl mb-4">系统设置</h3>
-        <div class="space-y-4">
-            <div class="flex justify-between items-center">
-                <span>深色模式</span>
-                <button onclick="toggleDarkMode()" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-full text-sm">切换</button>
-            </div>
-            <div class="flex justify-between items-center">
-                <span>字体大小</span>
-                <select id="fontSize" onchange="changeFontSize()" class="px-3 py-1 border rounded-lg dark:bg-gray-800">
-                    <option value="14">偏小</option>
-                    <option value="16" selected>标准</option>
-                    <option value="18">偏大</option>
-                </select>
-            </div>
-        </div>
-        <button onclick="toggleSettings()" class="w-full mt-4 py-2 bg-primary text-white rounded-full hover:bg-opacity-90">关闭</button>
-    </div>
-
     <script>
-        const $ = sel => document.querySelector(sel);
-        const $$ = sel => document.querySelectorAll(sel);
-        const toast = msg => {
+        const $ = s => document.querySelector(s);
+        let gameData = {};
+        let voteData = {};
+
+        // 消息提示
+        function toast(msg) {
             const t = $('#toast');
-            t.textContent = msg;
+            t.innerText = msg;
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 1800);
-        };
-        const lock = () => document.body.classList.add('no-scroll');
-        const unlock = () => document.body.classList.remove('no-scroll');
-
-        const showModal = (html) => {
-            $('#modal').innerHTML = html;
-            $('#modalOverlay').classList.remove('hidden');
-            $('#modal').classList.remove('hidden');
-            lock();
-        };
-        const closeModal = () => {
-            $('#modalOverlay').classList.add('hidden');
-            $('#modal').classList.add('hidden');
-            unlock();
-        };
-
-        function switchPage(page) {
-            $$('.page').forEach(p => p.classList.add('hidden'));
-            $(`#page-${page}`).classList.remove('hidden');
-        }
-        function toggleMobileMenu() {
-            $('#mobileMenu').classList.toggle('hidden');
+            setTimeout(() => t.classList.remove('show'), 2000);
         }
 
-        function toggleSettings() {
-            $('#settingsModal').classList.toggle('hidden');
-            $('#settingsOverlay').classList.toggle('hidden');
-        }
-        function toggleDarkMode() {
-            document.documentElement.classList.toggle('dark');
-            localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
-        }
-        function changeFontSize() {
-            const size = $('#fontSize').value;
-            document.body.style.fontSize = size + 'px';
-            localStorage.setItem('fontSize', size);
-        }
+        // 页面切换
+        function switchPage(id) {
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('block'));
+            document.getElementById('page-' + id).classList.add('block');
 
-        // 游戏数据
-        const games = [
-            { id:1, name:'两真一假', scene:'offline', desc:'每人两句真话一句假话，大家猜', rule:'1. 每人准备三句自述\n2. 轮流发言\n3. 全员猜谎', host:'大家好，接下来我们玩一个简单小游戏，每人说三句关于自己的话，两句真话一句假话，我们一起猜猜哪句是假的～', questions:['我会弹钢琴','我去过日本','我会说3种语言','我养过宠物','我通宵追过剧','我会做饭','我有过纹身','我恐高','我怕黑','我小时候被老师表扬过','我出过国','我有驾照','我喜欢吃香菜','我能倒立','我会游泳'] },
-            { id:2, name:'30秒自我介绍', scene:'all', desc:'快速认识彼此', rule:'每人限时30秒介绍自己', host:'请大家按顺序，每人30秒介绍自己，不用紧张～', questions:[] },
-            { id:3, name:'你画我猜', scene:'offline', desc:'经典互动游戏', rule:'一人描述/绘画，其他人猜', host:'我来描述关键词，大家抢答猜答案～', questions:['苹果','熊猫','飞机','太阳','西瓜','蛋糕','月亮','星星','汽车','房子','猫','狗','鱼','花','树','桌子','椅子','手机','电脑','书本','笔','杯子','雨伞','帽子','鞋子','自行车','火车','轮船','火箭','云朵','雨','雪','彩虹'] },
-            { id:4, name:'线上快问快答', scene:'online', desc:'适合会议暖场', rule:'主持人提问，快速回答', host:'我会发简单问题，大家直接打字回复即可～', questions:['喜欢甜还是咸？','早起还是熬夜？','猫派还是狗派？','喜欢夏天还是冬天？','喜欢奶茶还是咖啡？','喜欢宅家还是出门？','喜欢看书还是看剧？','喜欢运动还是躺平？','喜欢独处还是热闹？','喜欢晴天还是雨天？','喜欢吃辣还是不吃辣？','喜欢听音乐还是看电影？','喜欢线上还是线下？','喜欢早睡还是晚睡？','喜欢拍照还是被拍？'] },
-            { id:5, name:'名字接龙', scene:'all', desc:'记住名字快速互动', rule:'按顺序说名字，下一人接上一字', host:'我们来玩名字接龙，从第一个人开始，下一个人要用前一个人名字的最后一个字开头说自己的名字～', questions:[] },
-            { id:6, name:'谁是卧底', scene:'offline', desc:'经典团队互动', rule:'拿到相近词，找不同人', host:'现在我们玩谁是卧底，大家拿到词后，轮流描述，找出卧底！', questions:['苹果/梨','猫/狗','奶茶/咖啡','夏天/冬天','手机/电脑','可乐/雪碧','牛奶/酸奶','米饭/面条','蛋糕/面包','西瓜/哈密瓜','电影/电视剧','歌曲/舞蹈','篮球/足球','游泳/跑步','画画/写字'] },
-            { id:7, name:'真心话大冒险', scene:'offline', desc:'轻松破冰神器', rule:'抽题选真心话或大冒险', host:'现在开始真心话大冒险，大家轮流抽题，选真心话就如实回答，选大冒险就完成挑战～', questions:['真心话：你最近一次撒谎是什么时候？','真心话：你做过最糗的一件事是什么？','真心话：你暗恋过几个人？','真心话：你最尴尬的一次约会经历？','真心话：你最讨厌自己的哪一点？','真心话：你偷偷看别人手机过吗？','真心话：你有没有偷偷哭过？','真心话：你最害怕的东西是什么？','真心话：你做过最勇敢的一件事是什么？','真心话：你最难忘的一次旅行？','大冒险：模仿一个表情包','大冒险：给手机里第3个联系人发“我喜欢你”','大冒险：对着窗外大喊一声“我是最棒的！”','大冒险：用3种不同的语气说“我爱你”','大冒险：学一种动物叫','大冒险：和旁边的人十指相扣10秒','大冒险：做一个搞怪表情坚持5秒','大冒险：唱一句歌','大冒险：说出在场每个人的一个优点','大冒险：学一个电影里的经典台词'] },
-            { id:8, name:'猜职业', scene:'offline', desc:'了解彼此职业', rule:'用3个关键词描述职业', host:'请大家用3个关键词描述自己的职业，让其他人猜～', questions:['关键词：代码、电脑、bug → 程序员','关键词：画笔、色彩、灵感 → 设计师','关键词：粉笔、黑板、学生 → 老师','关键词：听诊器、医院、病人 → 医生','关键词：相机、镜头、风景 → 摄影师','关键词：厨房、锅铲、客人 → 厨师','关键词：讲台、PPT、听众 → 讲师','关键词：键盘、客服、电脑 → 客服','关键词：画笔、画布、颜料 → 画家','关键词：书本、图书馆、安静 → 图书管理员','关键词：汽车、方向盘、道路 → 司机','关键词：话筒、舞台、灯光 → 主持人','关键词：音符、乐器、旋律 → 音乐人','关键词：尺子、图纸、建筑 → 建筑师','关键词：相机、片场、演员 → 导演'] },
-            { id:9, name:'数字炸弹', scene:'all', desc:'简单又刺激', rule:'猜数字，接近就缩小范围', host:'我设定一个1-100的数字，大家轮流猜，猜中数字炸弹的人接受小惩罚～', questions:[] },
-            { id:10, name:'反向指令', scene:'offline', desc:'考验反应力', rule:'说指令做相反动作', host:'我说指令，大家做相反的动作，做错的人接受小惩罚～', questions:['举左手→举右手','坐下→站起来','抬头→低头','向前走→向后退','睁眼→闭眼','笑→哭','说“是”→说“不是”','拍手→跺脚','向左转→向右转','点头→摇头','说“对”→说“错”','站起→蹲下'] },
-            { id:11, name:'优点轰炸', scene:'offline', desc:'暖心互动', rule:'轮流夸对方3个优点', host:'现在我们来玩优点轰炸，每个人都要夸身边的人3个优点～', questions:[] },
-            { id:12, name:'线上你画我猜', scene:'online', desc:'适合远程互动', rule:'用在线白板画画猜词', host:'大家可以用会议软件的白板功能，一个人画画，其他人猜词～', questions:['月亮','星星','蛋糕','汽车','猫','狗','树','房子','鱼','鸟','云','雨','雪','彩虹','苹果','香蕉','书本','笔','杯子','雨伞','帽子','鞋子','自行车','火车','轮船','火箭','桌子','椅子','电脑','手机','相机','画笔'] },
-            // 新增逻辑推理游戏 线下+随机身份
-            {
-              id: 13,
-              name: "阿瓦隆",
-              scene: "offline",
-              desc: "线下逻辑推理，5-12人灵活开局，手机随机分配身份",
-              rule: "1. 5~12人均可开局，两大阵营：正义方 / 邪恶方\n2. 轮流推选队员执行任务，全员举手投票\n3. 任务出现失败票则本轮失利，3次失败邪恶方胜\n4. 3次任务成功后，刺客刺杀梅林，决定最终胜负\n5. 禁止自爆身份，依靠发言与逻辑推理",
-              host: "接下来玩线下阿瓦隆推理游戏，使用手机随机分配身份，身份严格保密。正义阵营完成任务、保护梅林；邪恶阵营破坏任务、找出梅林！",
-              questions: [
-                "5人局：梅林、派西维尔、忠臣×2、莫德雷德+刺客",
-                "6人局：梅林、派西维尔、忠臣×3、莫德雷德+刺客",
-                "7人局：梅林、派西维尔、忠臣×4、莫德雷德+刺客",
-                "8人局：梅林、派西维尔、忠臣×4、莫甘娜、刺客",
-                "9人局：梅林、派西维尔、忠臣×5、莫德雷德、刺客",
-                "10人局：梅林、派西维尔、忠臣×5、莫德雷德、奥伯伦、刺客",
-                "11-12人：追加忠臣/邪恶爪牙",
-                "基础身份：梅林、派西维尔、忠臣、刺客、莫德雷德",
-                "进阶身份：莫甘娜、奥伯伦、邪恶爪牙"
-              ],
-              rolePool: ["梅林","派西维尔","忠臣","忠臣","莫德雷德","刺客","莫甘娜","奥伯伦","邪恶爪牙"]
-            },
-            {
-              id: 14,
-              name: "精简狼人杀",
-              scene: "offline",
-              desc: "线下发言推理，6-12人，手机一键随机发身份",
-              rule: "1. 6~12人自由组局，分狼人、平民、神职三大类\n2. 夜间全员闭眼，各身份依次行动\n3. 白天轮流发言，举手表决放逐玩家\n4. 狼人全出局=好人胜；好人人数≤狼人=狼人胜",
-              host: "欢迎游玩线下狼人杀！使用手机随机分配身份，天黑请闭眼，天亮后梳理逻辑，找出所有狼人！",
-              questions: [
-                "6人局：狼人×2、平民×3、预言家",
-                "7人局：狼人×2、平民×3、预言家、女巫",
-                "8人局：狼人×2、平民×4、预言家、女巫",
-                "9人局：狼人×3、平民×4、预言家、女巫",
-                "10-12人：增加狼人/平民/猎人",
-                "预言家：每晚查验一名玩家身份",
-                "女巫：1解药+1毒药，单晚限用一种",
-                "猎人：出局可开枪带走一人",
-                "狼人：夜间击杀一名玩家",
-                "平民：依靠逻辑投票"
-              ],
-              rolePool: ["狼人","狼人","平民","平民","平民","预言家","女巫","猎人"]
-            },
-            {
-              id: 15,
-              name: "逻辑猜身份",
-              scene: "offline",
-              desc: "轻量推理3-10人，新手友好，手机随机分配身份",
-              rule: "1. 3人及以上即可开局，人数越多趣味性越强\n2. 每人随机获得隐藏身份，全程保密\n3. 主持人公布公共线索，玩家互相提问分析\n4. 率先猜出所有人身份即为获胜",
-              host: "现在开始逻辑猜身份，手机随机分配身份，根据线索推理，猜出全场身份吧！",
-              questions: [
-                "3-4人：简易身份组，新手入门",
-                "5-7人：标准身份组，中等难度",
-                "8-10人：多身份叠加，难度升级",
-                "身份组1：警察、小偷、路人 | 警察不与小偷相邻",
-                "身份组2：老师、学生、家长 | 家长非首位发言",
-                "身份组3：医生、病人、护士 | 病人护士立场不同",
-                "身份组4：骑士、怪兽、村民 | 怪兽只针对邻座",
-                "身份组5：店主、顾客、店员、访客 | 访客不认识店主"
-              ],
-              rolePool: ["警察","小偷","路人","老师","学生","家长","医生","病人","护士"]
+            // 切换游戏面板
+            const game = $('#voteGameSel').value;
+            if(game === 'avalon'){
+                $('#avalonVoteCtrl').classList.remove('hidden');
+                $('#werewolfVoteCtrl').classList.add('hidden');
+                $('#avalonVoteBtn').classList.remove('hidden');
+                $('#werewolfVoteBtn').classList.add('hidden');
+            }else{
+                $('#avalonVoteCtrl').classList.add('hidden');
+                $('#werewolfVoteCtrl').classList.remove('hidden');
+                $('#avalonVoteBtn').classList.add('hidden');
+                $('#werewolfVoteBtn').classList.remove('hidden');
             }
-        ];
+        }
 
-        // 随机分配身份函数
-        function randomRole(gameId, playerNum){
-            const game = games.find(g=>g.id === gameId);
-            if(!game || !game.rolePool){
-                toast("该游戏暂无身份库");
+        // 身份池配置
+        const roleConfig = {
+            avalon: ["梅林","派西维尔","忠臣","忠臣","莫德雷德","刺客","莫甘娜","邪恶爪牙"],
+            werewolf: ["狼人","狼人","平民","平民","平民","预言家","女巫","猎人"]
+        };
+
+        // 数组打乱
+        function shuffle(arr) {
+            let a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        // 主持人：生成本局身份 + 4位验证码
+        function createGameRole() {
+            const gameKey = $('#hostGameSel').value;
+            const num = parseInt($('#hostPlayerNum').value);
+            if (isNaN(num) || num < 3 || num > 20) {
+                toast("人数范围：3~20人");
                 return;
             }
-            let pool = [...game.rolePool];
-            let res = [];
-            // 截取对应人数身份
-            for(let i=0; i<playerNum; i++){
-                let idx = Math.floor(Math.random() * pool.length);
-                res.push(pool[idx]);
-                pool.splice(idx,1);
-                if(pool.length === 0) pool = [...game.rolePool];
+            const code = String(Math.floor(1000 + Math.random() * 9000));
+            let pool = roleConfig[gameKey];
+            let roleList = [];
+            for (let i = 0; i < num; i++) {
+                roleList.push(pool[i % pool.length]);
             }
-            let html = `<h4 class="font-bold mb-2">${game.name} · 随机身份（共${playerNum}人）</h4>`;
-            html += `<div class="space-y-1 text-sm">`;
-            res.forEach((r,i)=>{
-                html += `<p>第${i+1}位玩家：<span class="text-primary font-medium">${r}</span></p>`;
-            });
-            html += `</div>`;
-            showModal(html);
+            roleList = shuffle(roleList);
+
+            gameData = {
+                code: code,
+                game: gameKey,
+                total: num,
+                roles: roleList
+            };
+
+            $('#gameCode').innerText = code;
+            $('#hostCodeBox').classList.remove('hidden');
+            toast("身份已生成，请分享4位验证码");
         }
 
-        function renderGames() {
-            const key = $('#gameSearch').value.toLowerCase();
-            const scene = $('#gameScene').value;
-            const list = games.filter(g => {
-                if (scene !== 'all' && g.scene !== scene && g.scene !== 'all') return false;
-                if (key && !g.name.toLowerCase().includes(key) && !g.desc.toLowerCase().includes(key)) return false;
-                return true;
-            });
-            $('#gameList').innerHTML = list.map(g => `
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 relative hover:scale-[1.02] transition">
-                <span class="absolute top-2 right-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">${g.scene}</span>
-                <h3 class="font-bold text-lg">${g.name}</h3>
-                <p class="text-sm text-gray-500 mt-1">${g.desc}</p>
-                <div class="flex gap-2 mt-3">
-                    <button onclick="openGameDetail(${g.id})" class="flex-1 py-2 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">查看规则</button>
-                    ${g.rolePool ? `
-                    <div class="flex items-center gap-1">
-                        <input type="number" min="3" max="12" value="6" class="w-16 px-2 py-2 rounded-lg border dark:bg-gray-700 text-sm" id="pNum_${g.id}">
-                        <button onclick="randomRole(${g.id},document.getElementById('pNum_${g.id}').value)" class="py-2 px-2 bg-green-500 text-white rounded-lg text-sm">随机身份</button>
-                    </div>
-                    ` : ''}
-                </div>
-            </div>
-            `).join('');
-        }
-        function resetGameFilter() {
-            $('#gameSearch').value = '';
-            $('#gameScene').value = 'all';
-            renderGames();
-        }
-        function openGameDetail(id) {
-            const g = games.find(x => x.id === id);
-            let tips = "";
-            if(g.rolePool){
-                tips = `<div class="mt-3 p-2 bg-green-100 dark:bg-green-900 rounded text-sm">💡 线下玩法：设置参与人数 → 点击【随机身份】，手机直接分配身份，无需纸质道具</div>`;
+        // 玩家：查看个人身份
+        function getMyRole() {
+            const inputCode = $('#userCode').value.trim();
+            const myNum = parseInt($('#userNum').value);
+            if (inputCode.length !== 4) {
+                toast("请输入4位验证码");
+                return;
             }
-            showModal(`
-                <h3 class="font-bold text-xl mb-2">${g.name}</h3>
-                <div class="text-sm space-y-2">
-                    <p><b>主持话术：</b>${g.host}</p>
-                    <p><b>完整规则：</b><br>${g.rule}</p>
-                    ${g.questions.length ? `<div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2"><b>配置&话术参考（${g.questions.length}条）：</b><br>${g.questions.map(q => '• ' + q).join('<br>')}</div>` : ''}
-                    ${tips}
-                </div>
-                <button onclick="closeModal()" class="w-full mt-4 py-2 bg-primary text-white rounded-full hover:bg-opacity-90">关闭</button>
-            `);
-        }
-        function randomGame() {
-            const g = games[Math.floor(Math.random() * games.length)];
-            showModal(`
-                <h3 class="font-bold text-xl mb-2">随机推荐：${g.name}</h3>
-                <p class="text-sm">${g.desc}</p>
-                <button onclick="openGameDetail(${g.id})" class="w-full mt-2 py-2 bg-primary text-white rounded-full hover:bg-opacity-90">查看详情</button>
-                <button onclick="closeModal()" class="w-full mt-2 py-2 bg-gray-200 dark:bg-gray-700 rounded-full">关闭</button>
-            `);
+            if (isNaN(myNum) || myNum < 1 || myNum > 20) {
+                toast("编号范围：1~20");
+                return;
+            }
+            if (gameData.code !== inputCode) {
+                toast("验证码错误");
+                return;
+            }
+            if (myNum > gameData.total) {
+                toast("编号超出总人数");
+                return;
+            }
+            $('#myRole').innerText = gameData.roles[myNum - 1];
+            $('#myRoleBox').classList.remove('hidden');
         }
 
-        function renderTopics() {
-            const type = $('#topicType').value;
-            const items = topicPool[type];
-            $('#topicList').innerHTML = items.map(t => `
-            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow flex justify-between items-center">
-                <p class="text-sm">${t}</p>
-                <button onclick="copyTopic('${t}')" class="text-primary hover:text-opacity-80"><i class="fa fa-copy"></i></button>
-            </div>
-            `).join('');
-        }
-        function copyTopic(text) {
-            navigator.clipboard.writeText(text);
-            toast('已复制话题');
+        // ========== 通用投票校验 ==========
+        function checkVoteCode() {
+            const vcode = $('#userVoteCode').value.trim();
+            if (vcode !== voteData.vcode) {
+                toast("投票码错误");
+                return false;
+            }
+            return true;
         }
 
-        function renderPlan() {
-            let items = JSON.parse(localStorage.getItem('plan')) || [{ name: '破冰热身', time: 5 },{ name: '互动游戏', time: 15 },{ name: '总结分享', time: 10 }];
-            $('#planItems').innerHTML = items.map((it, i) => {
-                const clickEvent = it.type === 'game' ? `openGameDetail(${it.gameId})` : '';
-                return `
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow flex justify-between items-center ${clickEvent ? 'cursor-pointer' : ''}" draggable data-i="${i}" onclick="${clickEvent}">
-                    <div>
-                        <div class="font-medium flex items-center gap-2">
-                            ${it.type === 'game' ? '<i class="fa fa-gamepad text-primary"></i>' : ''}
-                            ${it.name}
-                        </div>
-                        <div class="text-xs text-gray-500">${it.time} 分钟</div>
-                    </div>
-                    <div class="cursor-move text-gray-400"><i class="fa fa-bars"></i></div>
-                </div>
-                `;
-            }).join('');
-            makeDrag();
+        // ========== 阿瓦隆 投票模块 ==========
+        function startTeamVote() {
+            const round = parseInt($('#roundNum').value);
+            const team = $('#teamNums').value.trim().split(/\s+/).map(Number).filter(n=>!isNaN(n));
+            if (team.length === 0) {
+                toast("请输入上车玩家编号");
+                return;
+            }
+            const vcode = String(Math.floor(1000 + Math.random() * 9000));
+            voteData = {
+                type: 'team',
+                vcode: vcode,
+                round: round,
+                team: team,
+                agree: 0,
+                disagree: 0,
+                fail: 0
+            };
+            showVoteBase();
+            $('#resultContent').innerHTML = `同意：<b>0</b> &nbsp; 反对：<b>0</b>`;
+            toast("组队投票已开启，投票码：" + vcode);
         }
-        function makeDrag() {
-            $$('#planItems [draggable]').forEach(el => {
-                el.ondragstart = e => e.dataTransfer.setData('i', el.dataset.i);
-                el.ondragover = e => e.preventDefault();
-                el.ondrop = e => {
-                    let from = +e.dataTransfer.getData('i');
-                    let to = +el.dataset.i;
-                    let arr = JSON.parse(localStorage.getItem('plan')) || [];
-                    [arr[from], arr[to]] = [arr[to], arr[from]];
-                    localStorage.setItem('plan', JSON.stringify(arr));
-                    renderPlan();
-                };
+
+        function startQuestVote() {
+            if (!voteData.vcode) {
+                toast("请先开启组队投票");
+                return;
+            }
+            voteData.type = 'quest';
+            voteData.fail = 0;
+            showVoteBase();
+            $('#resultContent').innerHTML = `任务失败票：<b>0</b>`;
+            toast("任务投票已开启，仅车上玩家可投失败票");
+        }
+
+        function voteAgree() {
+            if (!checkVoteCode()) return;
+            voteData.agree++;
+            $('#resultContent').innerHTML = `同意：<b>${voteData.agree}</b> &nbsp; 反对：<b>${voteData.disagree}</b>`;
+            toast("已投：同意队伍");
+        }
+        function voteDisagree() {
+            if (!checkVoteCode()) return;
+            voteData.disagree++;
+            $('#resultContent').innerHTML = `同意：<b>${voteData.agree}</b> &nbsp; 反对：<b>${voteData.disagree}</b>`;
+            toast("已投：不同意队伍");
+        }
+        function voteSuccess() {
+            if (!checkVoteCode()) return;
+            toast("已投：任务成功");
+        }
+        function voteFail() {
+            if (!checkVoteCode()) return;
+            voteData.fail++;
+            $('#resultContent').innerHTML = `任务失败票：<b>${voteData.fail}</b>`;
+            toast("已投：任务失败");
+        }
+
+        // ========== 狼人杀 投票模块 ==========
+        function startSheriffVote() {
+            const vcode = String(Math.floor(1000 + Math.random() * 9000));
+            const total = gameData.total || 20;
+            let targetList = [];
+            for(let i=1;i<=total;i++) targetList.push(i);
+
+            voteData = {
+                type: 'sheriff',
+                vcode: vcode,
+                targets: targetList,
+                count: {}
+            };
+            targetList.forEach(n=>voteData.count[n] = 0);
+
+            renderVoteBtn(targetList, 'sheriffBtnBox');
+            showVoteBase();
+            updateSheriffResult();
+            toast("警长竞选投票已开启，投票码：" + vcode);
+        }
+
+        function startOutVote() {
+            const vcode = String(Math.floor(1000 + Math.random() * 9000));
+            const targetStr = $('#voteTargetNums').value.trim();
+            let targetList = targetStr.split(/\s+/).map(Number).filter(n=>!isNaN(n));
+            targetList.push(0); // 0代表弃票
+
+            voteData = {
+                type: 'out',
+                vcode: vcode,
+                targets: targetList,
+                count: {}
+            };
+            targetList.forEach(n=>voteData.count[n] = 0);
+
+            renderVoteBtn(targetList, 'outBtnBox');
+            showVoteBase();
+            updateOutResult();
+            toast("放逐投票已开启，投票码：" + vcode);
+        }
+
+        // 渲染投票按钮
+        function renderVoteBtn(list, boxId) {
+            const box = document.getElementById(boxId);
+            box.innerHTML = '';
+            list.forEach(num => {
+                let txt = num === 0 ? '弃票' : num+'号';
+                let btn = document.createElement('button');
+                btn.className = 'py-2 bg-vote text-white rounded-lg text-sm';
+                btn.innerText = txt;
+                btn.onclick = () => playerVote(num);
+                box.appendChild(btn);
             });
         }
-        function addPlanItem() {
-            let arr = JSON.parse(localStorage.getItem('plan')) || [];
-            arr.push({ name: '新环节', time: 10 });
-            localStorage.setItem('plan', JSON.stringify(arr));
-            renderPlan();
-            toast('已添加普通环节');
-        }
-        function addGameItem() {
-            const randomGameData = games[Math.floor(Math.random() * games.length)];
-            let arr = JSON.parse(localStorage.getItem('plan')) || [];
-            arr.push({ name: randomGameData.name, time: 10, type: 'game', gameId: randomGameData.id });
-            localStorage.setItem('plan', JSON.stringify(arr));
-            renderPlan();
-            toast('已添加游戏环节，点击卡片查看玩法');
-        }
-        function loadPlanTemplate() {
-            localStorage.setItem('plan', JSON.stringify([{ name: '破冰热身', time: 5 },{ name: '互动游戏', time: 15 },{ name: '总结分享', time: 10 }]));
-            renderPlan();
-            toast('已加载聚会模板');
-        }
-        function exportPdf() { toast('PDF 已开始导出'); }
 
-        const topicPool = {
-            normal: ['你最近最开心的一件事是什么？','如果能瞬移，你最想去哪里？','你最喜欢的季节是什么？为什么？','你最近在追什么剧/综艺？','你最难忘的一次旅行经历？','如果可以和过去的自己对话，你会说什么？','你最近单曲循环的一首歌是什么？','你最擅长的一个冷知识是什么？','你小时候的梦想是什么？','如果能拥有一个超能力，你会选什么？'],
-            date: ['你理想中的约会方式是什么样的？','你最看重对方的哪三个特质？','你会做饭吗？拿手菜是什么？','你周末一般喜欢宅家还是出门？','你对异地恋怎么看？','你最想和另一半一起做的事是什么？','你理想的相处模式是什么样的？','你对“仪式感”怎么看？','你喜欢的异性穿搭风格是什么？','你最难忘的一次心动瞬间？'],
-            team: ['你觉得一个好团队最重要的特质是什么？','如果团建，你最想玩什么活动？','工作中让你最解压的事是什么？','你遇到过最有趣的同事是什么样的？','如果给团队提一个建议，你会说什么？','你工作中最有成就感的一件事？','你理想中的团队氛围是什么样的？','你最擅长的一个工作技能是什么？','如果可以和团队一起做一件事，你想做什么？','你觉得团队里最不可或缺的角色是什么？']
-        };
+        // 玩家投票（狼人杀通用）
+        function playerVote(num) {
+            if (!checkVoteCode()) return;
+            voteData.count[num]++;
+            if(voteData.type === 'sheriff'){
+                updateSheriffResult();
+                toast(`已投票：${num}号玩家`);
+            }else{
+                updateOutResult();
+                toast(num===0 ? '已弃票' : `已投出：${num}号玩家`);
+            }
+        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
-            const fontSize = localStorage.getItem('fontSize') || '16';
-            $('#fontSize').value = fontSize;
-            document.body.style.fontSize = fontSize + 'px';
-            renderGames(); renderTopics(); renderPlan();
-            if (!navigator.onLine) toast('当前离线 · 仅显示本地内容');
-        });
+        // 更新警长投票结果
+        function updateSheriffResult() {
+            let html = '<p>警长竞选票数：</p>';
+            for(let k in voteData.count){
+                let name = k==0 ? '弃票' : k+'号';
+                html += `<p>${name}：${voteData.count[k]} 票</p>`;
+            }
+            $('#resultContent').innerHTML = html;
+        }
+        // 更新放逐投票结果
+        function updateOutResult() {
+            let html = '<p>放逐投票票数：</p>';
+            for(let k in voteData.count){
+                let name = k==0 ? '弃票' : k+'号';
+                html += `<p>${name}：${voteData.count[k]} 票</p>`;
+            }
+            $('#resultContent').innerHTML = html;
+        }
 
-        let lastShake = 0;
-        window.addEventListener('devicemotion', e => {
-            if ($('#page-topics').classList.contains('hidden')) return;
-            let now = Date.now();
-            if (now - lastShake < 2000) return;
-            let acc = e.accelerationIncludingGravity;
-            const total = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-            if (total > 25) { lastShake = now; renderTopics(); toast('摇一摇 · 已换一批话题'); }
-        });
+        // 展示投票码与结果区
+        function showVoteBase() {
+            $('#voteCode').innerText = voteData.vcode;
+            $('#voteCodeBox').classList.remove('hidden');
+            $('#voteResultBox').classList.remove('hidden');
+        }
+
+        // 初始化
+        window.onload = function(){
+            switchPage('home');
+        }
     </script>
 </body>
 </html>
