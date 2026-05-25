@@ -68,23 +68,23 @@
         <section id="page-home" class="page block">
             <div class="text-center mt-6 mb-10">
                 <h1 class="text-3xl md:text-4xl font-bold mb-3">零尴尬破冰 · 全场景适用</h1>
-                <p class="text-gray-500 max-w-xl mx-auto">聚会、团建、相亲、新班级、线上会议暖场神器，自主持话术、题库、计时、计分</p>
+                <p class="text-gray-500 max-w-xl mx-auto">聚会、团建、相亲、新班级、线下暖场，自带随机身份分配</p>
             </div>
             <div class="grid md:grid-cols-3 gap-6">
                 <div onclick="switchPage('games')" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center cursor-pointer hover:shadow-lg transition">
                     <div class="text-3xl text-primary mb-3"><i class="fa fa-gamepad"></i></div>
                     <h3 class="font-bold text-lg mb-1">精品破冰游戏</h3>
-                    <p class="text-sm text-gray-500">带规则、话术、题库、氛围提示</p>
+                    <p class="text-sm text-gray-500">规则+题库+随机身份分配</p>
                 </div>
                 <div onclick="switchPage('topics')" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center cursor-pointer hover:shadow-lg transition">
                     <div class="text-3xl text-primary mb-3"><i class="fa fa-comments"></i></div>
                     <h3 class="font-bold text-lg mb-1">智能话题生成</h3>
-                    <p class="text-sm text-gray-500">点击复制 · 摇一摇切换 · 不冷场</p>
+                    <p class="text-sm text-gray-500">点击复制 · 摇一摇切换</p>
                 </div>
                 <div onclick="switchPage('planner')" class="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center cursor-pointer hover:shadow-lg transition">
                     <div class="text-3xl text-primary mb-3"><i class="fa fa-calendar-check"></i></div>
                     <h3 class="font-bold text-lg mb-1">活动流程策划</h3>
-                    <p class="text-sm text-gray-500">拖拽排序 · 导出PDF · 模板套用</p>
+                    <p class="text-sm text-gray-500">拖拽排序 · 模板套用</p>
                 </div>
             </div>
         </section>
@@ -92,7 +92,7 @@
         <!-- 游戏库 -->
         <section id="page-games" class="page hidden">
             <h2 class="text-xl font-bold mb-2">破冰游戏库</h2>
-            <p class="text-sm text-gray-500 mb-4">支持搜索、筛选、快速开局、主持话术</p>
+            <p class="text-sm text-gray-500 mb-4">支持搜索、筛选、规则查看、手机随机分配身份</p>
             <div class="flex flex-wrap gap-2 mb-4">
                 <input id="gameSearch" placeholder="搜索游戏..." class="flex-1 px-3 py-2 rounded-lg border dark:bg-gray-800">
                 <select id="gameScene" class="px-3 py-2 border rounded-lg dark:bg-gray-800">
@@ -123,7 +123,7 @@
         <!-- 活动策划 -->
         <section id="page-planner" class="page hidden">
             <h2 class="text-xl font-bold mb-2">活动策划助手</h2>
-            <p class="text-sm text-gray-500 mb-4">拖拽排序、模板套用、点击游戏环节可查看玩法</p>
+            <p class="text-sm text-gray-500 mb-4">拖拽排序、模板套用、点击游戏查看玩法</p>
             <button onclick="loadPlanTemplate()" class="mb-4 px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full text-sm hover:bg-opacity-90">套用聚会模板</button>
             <div id="planItems" class="grid gap-3 mt-2"></div>
             <button onclick="addGameItem()" class="mt-4 w-full py-2 bg-primary text-white rounded-full hover:bg-opacity-90">添加游戏环节</button>
@@ -203,7 +203,7 @@
             localStorage.setItem('fontSize', size);
         }
 
-        // 游戏数据（超级扩充版）
+        // 游戏数据
         const games = [
             { id:1, name:'两真一假', scene:'offline', desc:'每人两句真话一句假话，大家猜', rule:'1. 每人准备三句自述\n2. 轮流发言\n3. 全员猜谎', host:'大家好，接下来我们玩一个简单小游戏，每人说三句关于自己的话，两句真话一句假话，我们一起猜猜哪句是假的～', questions:['我会弹钢琴','我去过日本','我会说3种语言','我养过宠物','我通宵追过剧','我会做饭','我有过纹身','我恐高','我怕黑','我小时候被老师表扬过','我出过国','我有驾照','我喜欢吃香菜','我能倒立','我会游泳'] },
             { id:2, name:'30秒自我介绍', scene:'all', desc:'快速认识彼此', rule:'每人限时30秒介绍自己', host:'请大家按顺序，每人30秒介绍自己，不用紧张～', questions:[] },
@@ -216,14 +216,94 @@
             { id:9, name:'数字炸弹', scene:'all', desc:'简单又刺激', rule:'猜数字，接近就缩小范围', host:'我设定一个1-100的数字，大家轮流猜，猜中数字炸弹的人接受小惩罚～', questions:[] },
             { id:10, name:'反向指令', scene:'offline', desc:'考验反应力', rule:'说指令做相反动作', host:'我说指令，大家做相反的动作，做错的人接受小惩罚～', questions:['举左手→举右手','坐下→站起来','抬头→低头','向前走→向后退','睁眼→闭眼','笑→哭','说“是”→说“不是”','拍手→跺脚','向左转→向右转','点头→摇头','说“对”→说“错”','站起→蹲下'] },
             { id:11, name:'优点轰炸', scene:'offline', desc:'暖心互动', rule:'轮流夸对方3个优点', host:'现在我们来玩优点轰炸，每个人都要夸身边的人3个优点～', questions:[] },
-            { id:12, name:'线上你画我猜', scene:'online', desc:'适合远程互动', rule:'用在线白板画画猜词', host:'大家可以用会议软件的白板功能，一个人画画，其他人猜词～', questions:['月亮','星星','蛋糕','汽车','猫','狗','树','房子','鱼','鸟','云','雨','雪','彩虹','苹果','香蕉','书本','笔','杯子','雨伞','帽子','鞋子','自行车','火车','轮船','火箭','桌子','椅子','电脑','手机','相机','画笔'] }
+            { id:12, name:'线上你画我猜', scene:'online', desc:'适合远程互动', rule:'用在线白板画画猜词', host:'大家可以用会议软件的白板功能，一个人画画，其他人猜词～', questions:['月亮','星星','蛋糕','汽车','猫','狗','树','房子','鱼','鸟','云','雨','雪','彩虹','苹果','香蕉','书本','笔','杯子','雨伞','帽子','鞋子','自行车','火车','轮船','火箭','桌子','椅子','电脑','手机','相机','画笔'] },
+            // 新增逻辑推理游戏 线下+随机身份
+            {
+              id: 13,
+              name: "阿瓦隆",
+              scene: "offline",
+              desc: "线下逻辑推理，5-12人灵活开局，手机随机分配身份",
+              rule: "1. 5~12人均可开局，两大阵营：正义方 / 邪恶方\n2. 轮流推选队员执行任务，全员举手投票\n3. 任务出现失败票则本轮失利，3次失败邪恶方胜\n4. 3次任务成功后，刺客刺杀梅林，决定最终胜负\n5. 禁止自爆身份，依靠发言与逻辑推理",
+              host: "接下来玩线下阿瓦隆推理游戏，使用手机随机分配身份，身份严格保密。正义阵营完成任务、保护梅林；邪恶阵营破坏任务、找出梅林！",
+              questions: [
+                "5人局：梅林、派西维尔、忠臣×2、莫德雷德+刺客",
+                "6人局：梅林、派西维尔、忠臣×3、莫德雷德+刺客",
+                "7人局：梅林、派西维尔、忠臣×4、莫德雷德+刺客",
+                "8人局：梅林、派西维尔、忠臣×4、莫甘娜、刺客",
+                "9人局：梅林、派西维尔、忠臣×5、莫德雷德、刺客",
+                "10人局：梅林、派西维尔、忠臣×5、莫德雷德、奥伯伦、刺客",
+                "11-12人：追加忠臣/邪恶爪牙",
+                "基础身份：梅林、派西维尔、忠臣、刺客、莫德雷德",
+                "进阶身份：莫甘娜、奥伯伦、邪恶爪牙"
+              ],
+              rolePool: ["梅林","派西维尔","忠臣","忠臣","莫德雷德","刺客","莫甘娜","奥伯伦","邪恶爪牙"]
+            },
+            {
+              id: 14,
+              name: "精简狼人杀",
+              scene: "offline",
+              desc: "线下发言推理，6-12人，手机一键随机发身份",
+              rule: "1. 6~12人自由组局，分狼人、平民、神职三大类\n2. 夜间全员闭眼，各身份依次行动\n3. 白天轮流发言，举手表决放逐玩家\n4. 狼人全出局=好人胜；好人人数≤狼人=狼人胜",
+              host: "欢迎游玩线下狼人杀！使用手机随机分配身份，天黑请闭眼，天亮后梳理逻辑，找出所有狼人！",
+              questions: [
+                "6人局：狼人×2、平民×3、预言家",
+                "7人局：狼人×2、平民×3、预言家、女巫",
+                "8人局：狼人×2、平民×4、预言家、女巫",
+                "9人局：狼人×3、平民×4、预言家、女巫",
+                "10-12人：增加狼人/平民/猎人",
+                "预言家：每晚查验一名玩家身份",
+                "女巫：1解药+1毒药，单晚限用一种",
+                "猎人：出局可开枪带走一人",
+                "狼人：夜间击杀一名玩家",
+                "平民：依靠逻辑投票"
+              ],
+              rolePool: ["狼人","狼人","平民","平民","平民","预言家","女巫","猎人"]
+            },
+            {
+              id: 15,
+              name: "逻辑猜身份",
+              scene: "offline",
+              desc: "轻量推理3-10人，新手友好，手机随机分配身份",
+              rule: "1. 3人及以上即可开局，人数越多趣味性越强\n2. 每人随机获得隐藏身份，全程保密\n3. 主持人公布公共线索，玩家互相提问分析\n4. 率先猜出所有人身份即为获胜",
+              host: "现在开始逻辑猜身份，手机随机分配身份，根据线索推理，猜出全场身份吧！",
+              questions: [
+                "3-4人：简易身份组，新手入门",
+                "5-7人：标准身份组，中等难度",
+                "8-10人：多身份叠加，难度升级",
+                "身份组1：警察、小偷、路人 | 警察不与小偷相邻",
+                "身份组2：老师、学生、家长 | 家长非首位发言",
+                "身份组3：医生、病人、护士 | 病人护士立场不同",
+                "身份组4：骑士、怪兽、村民 | 怪兽只针对邻座",
+                "身份组5：店主、顾客、店员、访客 | 访客不认识店主"
+              ],
+              rolePool: ["警察","小偷","路人","老师","学生","家长","医生","病人","护士"]
+            }
         ];
 
-        const topicPool = {
-            normal: ['你最近最开心的一件事是什么？','如果能瞬移，你最想去哪里？','你最喜欢的季节是什么？为什么？','你最近在追什么剧/综艺？','你最难忘的一次旅行经历？','如果可以和过去的自己对话，你会说什么？','你最近单曲循环的一首歌是什么？','你最擅长的一个冷知识是什么？','你小时候的梦想是什么？','如果能拥有一个超能力，你会选什么？'],
-            date: ['你理想中的约会方式是什么样的？','你最看重对方的哪三个特质？','你会做饭吗？拿手菜是什么？','你周末一般喜欢宅家还是出门？','你对异地恋怎么看？','你最想和另一半一起做的事是什么？','你理想的相处模式是什么样的？','你对“仪式感”怎么看？','你喜欢的异性穿搭风格是什么？','你最难忘的一次心动瞬间？'],
-            team: ['你觉得一个好团队最重要的特质是什么？','如果团建，你最想玩什么活动？','工作中让你最解压的事是什么？','你遇到过最有趣的同事是什么样的？','如果给团队提一个建议，你会说什么？','你工作中最有成就感的一件事？','你理想中的团队氛围是什么样的？','你最擅长的一个工作技能是什么？','如果可以和团队一起做一件事，你想做什么？','你觉得团队里最不可或缺的角色是什么？']
-        };
+        // 随机分配身份函数
+        function randomRole(gameId, playerNum){
+            const game = games.find(g=>g.id === gameId);
+            if(!game || !game.rolePool){
+                toast("该游戏暂无身份库");
+                return;
+            }
+            let pool = [...game.rolePool];
+            let res = [];
+            // 截取对应人数身份
+            for(let i=0; i<playerNum; i++){
+                let idx = Math.floor(Math.random() * pool.length);
+                res.push(pool[idx]);
+                pool.splice(idx,1);
+                if(pool.length === 0) pool = [...game.rolePool];
+            }
+            let html = `<h4 class="font-bold mb-2">${game.name} · 随机身份（共${playerNum}人）</h4>`;
+            html += `<div class="space-y-1 text-sm">`;
+            res.forEach((r,i)=>{
+                html += `<p>第${i+1}位玩家：<span class="text-primary font-medium">${r}</span></p>`;
+            });
+            html += `</div>`;
+            showModal(html);
+        }
 
         function renderGames() {
             const key = $('#gameSearch').value.toLowerCase();
@@ -238,7 +318,15 @@
                 <span class="absolute top-2 right-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">${g.scene}</span>
                 <h3 class="font-bold text-lg">${g.name}</h3>
                 <p class="text-sm text-gray-500 mt-1">${g.desc}</p>
-                <button onclick="openGameDetail(${g.id})" class="w-full mt-3 py-2 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">快速开局</button>
+                <div class="flex gap-2 mt-3">
+                    <button onclick="openGameDetail(${g.id})" class="flex-1 py-2 bg-primary text-white rounded-lg text-sm hover:bg-opacity-90">查看规则</button>
+                    ${g.rolePool ? `
+                    <div class="flex items-center gap-1">
+                        <input type="number" min="3" max="12" value="6" class="w-16 px-2 py-2 rounded-lg border dark:bg-gray-700 text-sm" id="pNum_${g.id}">
+                        <button onclick="randomRole(${g.id},document.getElementById('pNum_${g.id}').value)" class="py-2 px-2 bg-green-500 text-white rounded-lg text-sm">随机身份</button>
+                    </div>
+                    ` : ''}
+                </div>
             </div>
             `).join('');
         }
@@ -249,12 +337,17 @@
         }
         function openGameDetail(id) {
             const g = games.find(x => x.id === id);
+            let tips = "";
+            if(g.rolePool){
+                tips = `<div class="mt-3 p-2 bg-green-100 dark:bg-green-900 rounded text-sm">💡 线下玩法：设置参与人数 → 点击【随机身份】，手机直接分配身份，无需纸质道具</div>`;
+            }
             showModal(`
                 <h3 class="font-bold text-xl mb-2">${g.name}</h3>
                 <div class="text-sm space-y-2">
                     <p><b>主持话术：</b>${g.host}</p>
-                    <p><b>规则：</b><br>${g.rule}</p>
-                    ${g.questions.length ? `<div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2"><b>题库（${g.questions.length}条）：</b><br>${g.questions.map(q => '• ' + q).join('<br>')}</div>` : ''}
+                    <p><b>完整规则：</b><br>${g.rule}</p>
+                    ${g.questions.length ? `<div class="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg mt-2"><b>配置&话术参考（${g.questions.length}条）：</b><br>${g.questions.map(q => '• ' + q).join('<br>')}</div>` : ''}
+                    ${tips}
                 </div>
                 <button onclick="closeModal()" class="w-full mt-4 py-2 bg-primary text-white rounded-full hover:bg-opacity-90">关闭</button>
             `);
@@ -314,7 +407,6 @@
                     [arr[from], arr[to]] = [arr[to], arr[from]];
                     localStorage.setItem('plan', JSON.stringify(arr));
                     renderPlan();
-                    toast('已调整环节顺序');
                 };
             });
         }
@@ -339,6 +431,12 @@
             toast('已加载聚会模板');
         }
         function exportPdf() { toast('PDF 已开始导出'); }
+
+        const topicPool = {
+            normal: ['你最近最开心的一件事是什么？','如果能瞬移，你最想去哪里？','你最喜欢的季节是什么？为什么？','你最近在追什么剧/综艺？','你最难忘的一次旅行经历？','如果可以和过去的自己对话，你会说什么？','你最近单曲循环的一首歌是什么？','你最擅长的一个冷知识是什么？','你小时候的梦想是什么？','如果能拥有一个超能力，你会选什么？'],
+            date: ['你理想中的约会方式是什么样的？','你最看重对方的哪三个特质？','你会做饭吗？拿手菜是什么？','你周末一般喜欢宅家还是出门？','你对异地恋怎么看？','你最想和另一半一起做的事是什么？','你理想的相处模式是什么样的？','你对“仪式感”怎么看？','你喜欢的异性穿搭风格是什么？','你最难忘的一次心动瞬间？'],
+            team: ['你觉得一个好团队最重要的特质是什么？','如果团建，你最想玩什么活动？','工作中让你最解压的事是什么？','你遇到过最有趣的同事是什么样的？','如果给团队提一个建议，你会说什么？','你工作中最有成就感的一件事？','你理想中的团队氛围是什么样的？','你最擅长的一个工作技能是什么？','如果可以和团队一起做一件事，你想做什么？','你觉得团队里最不可或缺的角色是什么？']
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             if (localStorage.getItem('darkMode') === 'true') document.documentElement.classList.add('dark');
