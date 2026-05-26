@@ -1,512 +1,346 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>聚会桌游助手 | 阿瓦隆+狼人杀 身份+全投票</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#FF6B35',
-                        agree: '#22c55e',
-                        disagree: '#ef4444',
-                        success: '#3b82f6',
-                        fail: '#f97316',
-                        vote: '#8b5cf6'
-                    }
-                }
-            }
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>聚会桌游助手 - 终极优化版</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#ff6b35',
+            werewolf: '#222',
+            avalon: '#165DFF',
+            success: '#36d399',
+            danger: '#f87272',
+            vote: '#8b5cf6',
+          }
         }
-    </script>
-    <style>
-        .toast {
-            position: fixed;
-            bottom: 10vh;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .toast.show { opacity: 1; }
-        .back-btn {
-            position: fixed;
-            top: 80px;
-            left: 12px;
-            z-index: 40;
-            background: #fff;
-            border-radius: 999px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #FF6B35;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .dark .back-btn { background: #1f2937; }
-        .page { display: none; }
-        .page.block { display: block; }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    body { user-select: none; }
+    .toast { position: fixed; bottom: 10vh; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-radius: 8px; opacity: 0; transition: 0.3s; z-index: 9999; }
+    .toast.show { opacity: 1; }
+    .blur-role { filter: blur(8px); }
+  </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100" style="font-size: 16px;">
-    <div class="toast" id="toast"></div>
-    <a class="back-btn" href="javascript:history.back()"><i class="fa fa-arrow-left"></i></a>
+<body class="bg-gray-100 text-gray-800 min-h-screen">
+  <div class="toast" id="toast"></div>
 
-    <!-- 顶部导航 -->
-    <nav class="fixed top-0 left-0 right-0 bg-white dark:bg-gray-800 shadow z-50">
-        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <div onclick="switchPage('home')" class="flex items-center gap-2 cursor-pointer">
-                <img src="https://picsum.photos/200/200?random=logo" class="w-10 h-10 rounded-full">
-                <span class="font-bold text-xl text-primary">桌游助手</span>
+  <div class="max-w-xl mx-auto p-4 pb-20">
+    <h1 class="text-[22px] font-bold text-primary text-center mb-1">聚会桌游助手</h1>
+    <p class="text-sm text-gray-500 text-center mb-4">狼人杀 / 阿瓦隆 · 多机同步 · 终极优化版</p>
+
+    <!-- 页面容器 -->
+    <div id="pages">
+      <!-- 首页 -->
+      <div id="page-home" class="block">
+        <div class="bg-white rounded-xl p-4 shadow mb-4">
+          <h3 class="font-bold text-primary mb-2">🎮 主持人 - 创建对局</h3>
+          <div class="space-y-2">
+            <select id="game-type" class="w-full border p-2 rounded">
+              <option value="werewolf">狼人杀</option>
+              <option value="avalon">阿瓦隆</option>
+            </select>
+            <input type="number" id="player-count" placeholder="参与人数（3-20）" min="3" max="20" value="6" class="w-full border p-2 rounded">
+            <button onclick="hostCreateGame()" class="w-full bg-primary text-white p-2 rounded">创建身份 & 4位验证码</button>
+          </div>
+          <div id="host-room-info" class="mt-3 hidden">
+            <div class="p-2 bg-gray-100 rounded text-center">
+              <p class="text-sm">本局验证码：<span id="room-code" class="font-bold text-lg"></span></p>
             </div>
-            <div class="hidden md:flex gap-5 items-center">
-                <button onclick="switchPage('home')" class="hover:text-primary">身份分配</button>
-                <button onclick="switchPage('vote')" class="hover:text-primary">投票大厅</button>
-                <button onclick="switchPage('rule')" class="hover:text-primary">游戏规则</button>
-            </div>
-            <div class="md:hidden flex items-center gap-3">
-                <button onclick="switchPage('home')" class="p-2">身份</button>
-                <button onclick="switchPage('vote')" class="p-2">投票</button>
-                <button onclick="switchPage('rule')" class="p-2">规则</button>
-            </div>
+          </div>
         </div>
-    </nav>
 
-    <main class="pt-20 pb-24 px-4 container mx-auto">
-        <!-- 页面1：身份分配（核心） -->
-        <section id="page-home" class="page block">
-            <div class="text-center mt-6 mb-8">
-                <h1 class="text-2xl font-bold mb-2">身份随机分配</h1>
-                <p class="text-sm text-gray-500">4位验证码 | 3~20人 | 每人独立查看身份</p>
+        <div class="bg-white rounded-xl p-4 shadow mb-4">
+          <h3 class="font-bold mb-2">👤 玩家 - 查看身份</h3>
+          <div class="space-y-2">
+            <input type="text" id="user-code" placeholder="输入4位验证码" maxlength="4" class="w-full border p-2 rounded">
+            <input type="number" id="user-seat" placeholder="输入你的编号（1-20）" min="1" max="20" class="w-full border p-2 rounded">
+            <button onclick="userGetRole()" class="w-full bg-success text-white p-2 rounded">查看身份</button>
+          </div>
+          <div id="role-card" class="mt-3 p-3 rounded text-center hidden">
+            <p class="text-sm">你的身份：</p>
+            <div id="role-text" class="text-xl font-bold blur-role py-1"></div>
+            <button onclick="showRole()" class="mt-2 text-xs bg-gray-200 px-2 py-1 rounded">长按显示身份</button>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <button onclick="goPage('vote')" class="flex-1 bg-vote text-white p-2 rounded">投票大厅</button>
+          <button onclick="goPage('host')" class="flex-1 bg-gray-700 text-white p-2 rounded">主持人控制台</button>
+        </div>
+      </div>
+
+      <!-- 投票页 -->
+      <div id="page-vote" class="hidden">
+        <h3 class="font-bold text-center mb-3">🗳️ 投票大厅</h3>
+        <div class="bg-white rounded-xl p-4 shadow mb-4">
+          <h4 class="font-bold text-primary mb-2">主持人 - 开启投票</h4>
+          <div id="vote-werewolf" class="space-y-2">
+            <button onclick="hostStartSheriffVote()" class="w-full bg-vote text-white p-2 rounded">警长竞选投票</button>
+            <input id="vote-targets" placeholder="放逐编号（空格分隔）" class="w-full border p-2 rounded">
+            <button onclick="hostStartExileVote()" class="w-full bg-danger text-white p-2 rounded">白天放逐投票</button>
+          </div>
+          <div id="vote-avalon" class="hidden space-y-2">
+            <div class="flex gap-2">
+              <input id="quest-round" placeholder="轮次" class="flex-1 border p-2 rounded">
+              <input id="quest-team" placeholder="上车编号" class="flex-1 border p-2 rounded">
             </div>
+            <button onclick="hostStartTeamVote()" class="w-full bg-avalon text-white p-2 rounded">组队投票</button>
+            <button onclick="hostStartQuestVote()" class="w-full bg-orange-500 text-white p-2 rounded">任务投票</button>
+          </div>
+          <div class="mt-3 p-2 bg-gray-100 rounded text-center">
+            <p class="text-sm">投票码：<span id="vote-code" class="font-bold"></span></p>
+          </div>
+          <div id="vote-result" class="mt-2 text-sm"></div>
+        </div>
 
-            <!-- 主持人区域 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
-                <h3 class="font-bold mb-3 text-primary">🎮 主持人 · 开局设置</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-sm">选择游戏</label>
-                        <select id="hostGameSel" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                            <option value="avalon">阿瓦隆</option>
-                            <option value="werewolf">狼人杀</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-sm">参与人数 (3~20人)</label>
-                        <input type="number" id="hostPlayerNum" min="3" max="20" value="6" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                    </div>
-                    <button onclick="createGameRole()" class="w-full py-2 bg-primary text-white rounded-lg">生成身份 & 获取4位验证码</button>
-                </div>
-                <div id="hostCodeBox" class="mt-4 hidden">
-                    <p class="text-sm">本局4位验证码：</p>
-                    <div class="text-xl font-bold text-center py-2 bg-gray-100 dark:bg-gray-700 rounded my-2" id="gameCode"></div>
-                </div>
-            </div>
+        <div class="bg-white rounded-xl p-4 shadow">
+          <h4 class="font-bold mb-2">玩家 - 参与投票</h4>
+          <input id="user-vote-code" placeholder="输入投票码" class="w-full border p-2 rounded mb-2">
+          <div id="vote-buttons" class="grid grid-cols-2 gap-2"></div>
+        </div>
 
-            <!-- 玩家区域 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
-                <h3 class="font-bold mb-3">👤 玩家 · 查看个人身份</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-sm">输入4位验证码</label>
-                        <input type="text" id="userCode" placeholder="4位数字" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                    </div>
-                    <div>
-                        <label class="text-sm">你的编号 (1~20)</label>
-                        <input type="number" id="userNum" min="1" max="20" placeholder="入座顺序编号" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                    </div>
-                    <button onclick="getMyRole()" class="w-full py-2 bg-green-500 text-white rounded-lg">查看我的身份</button>
-                </div>
-                <div id="myRoleBox" class="mt-4 hidden p-3 rounded bg-green-100 dark:bg-green-900 text-center">
-                    <p class="text-sm">你的身份：</p>
-                    <p class="text-2xl font-bold text-primary mt-1" id="myRole"></p>
-                    <p class="text-xs mt-2 text-gray-600 dark:text-gray-300">牢记身份，请勿告知他人</p>
-                </div>
-            </div>
-        </section>
+        <button onclick="goPage('home')" class="mt-4 w-full bg-gray-600 text-white p-2 rounded">返回</button>
+      </div>
 
-        <!-- 页面2：投票大厅（阿瓦隆 + 狼人杀 全投票） -->
-        <section id="page-vote" class="page hidden">
-            <div class="text-center mt-6 mb-4">
-                <h2 class="text-xl font-bold">统一投票大厅</h2>
-                <p class="text-sm text-gray-500">阿瓦隆/狼人杀 全部投票功能</p>
-            </div>
+      <!-- 主持人控制台 -->
+      <div id="page-host" class="hidden">
+        <h3 class="font-bold text-center mb-3">⚙️ 主持人控制台</h3>
+        <div class="bg-white rounded-xl p-4 shadow mb-4 space-y-2">
+          <input id="mark-out-seat" placeholder="标记出局编号" class="w-full border p-2 rounded">
+          <button onclick="hostMarkOut()" class="w-full bg-danger text-white p-2 rounded">标记出局</button>
+          <button onclick="hostResetRoom()" class="w-full bg-gray-700 text-white p-2 rounded">重置整局游戏</button>
+          <button onclick="hostTransferBadge()" class="w-full bg-vote text-white p-2 rounded">警徽移交/撕毁</button>
+        </div>
+        <button onclick="goPage('home')" class="w-full bg-gray-600 text-white p-2 rounded">返回</button>
+      </div>
+    </div>
+  </div>
 
-            <!-- 主持人：发起各类投票 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
-                <h3 class="font-bold mb-3 text-primary">🎮 主持人 · 发起投票</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-sm">当前游戏</label>
-                        <select id="voteGameSel" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                            <option value="avalon">阿瓦隆</option>
-                            <option value="werewolf">狼人杀</option>
-                        </select>
-                    </div>
+  <script>
+    let room = null;
+    let voteSession = null;
+    let voted = new Set();
+    let outSeats = new Set();
+    let sheriff = null;
+    let roleTemp = "";
 
-                    <!-- 阿瓦隆专用 -->
-                    <div id="avalonVoteCtrl">
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-sm">任务轮次(1~5)</label>
-                                <input type="number" id="roundNum" min="1" max="5" value="1" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                            </div>
-                            <div>
-                                <label class="text-sm">上车编号</label>
-                                <input type="text" id="teamNums" placeholder="1 3 5" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button onclick="startTeamVote()" class="py-2 bg-blue-500 text-white rounded-lg">发起组队投票</button>
-                            <button onclick="startQuestVote()" class="py-2 bg-orange-500 text-white rounded-lg">发起任务投票</button>
-                        </div>
-                    </div>
+    const roles = {
+      werewolf: ["狼人","狼人","平民","平民","平民","预言家","女巫","猎人"],
+      avalon: ["梅林","派西维尔","忠臣","忠臣","莫德雷德","刺客","莫甘娜","爪牙"]
+    };
 
-                    <!-- 狼人杀专用 -->
-                    <div id="werewolfVoteCtrl" class="hidden space-y-2">
-                        <button onclick="startSheriffVote()" class="w-full py-2 bg-vote text-white rounded-lg">开启【警长竞选投票】</button>
-                        <div>
-                            <label class="text-sm">放逐目标编号(多个空格分隔)</label>
-                            <input type="text" id="voteTargetNums" placeholder="1 2 4" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                        </div>
-                        <button onclick="startOutVote()" class="w-full py-2 bg-red-500 text-white rounded-lg">开启【白天放逐投票】</button>
-                    </div>
-                </div>
+    // 工具
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"),1800);
+    }
 
-                <!-- 投票码 & 结果展示 -->
-                <div id="voteCodeBox" class="mt-4 hidden">
-                    <p class="text-sm">本轮投票码：<span id="voteCode" class="font-bold text-lg"></span></p>
-                </div>
-                <div id="voteResultBox" class="mt-4 hidden p-3 rounded bg-gray-100 dark:bg-gray-700 text-sm">
-                    <div id="resultContent"></div>
-                </div>
-            </div>
+    function goPage(page) {
+      document.querySelectorAll("#pages > div").forEach(p=>p.classList.add("hidden"));
+      document.getElementById("page-"+page).classList.remove("hidden");
+      if(page==="vote"){
+        const g = room?.type || "werewolf";
+        document.getElementById("vote-werewolf").classList.toggle("hidden",g!=="werewolf");
+        document.getElementById("vote-avalon").classList.toggle("hidden",g!=="avalon");
+      }
+    }
 
-            <!-- 玩家：投票操作区 -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow p-4">
-                <h3 class="font-bold mb-3">👤 玩家 · 参与投票</h3>
-                <div class="space-y-3">
-                    <div>
-                        <label class="text-sm">输入本轮投票码</label>
-                        <input type="text" id="userVoteCode" placeholder="投票码" class="w-full mt-1 p-2 border rounded dark:bg-gray-700">
-                    </div>
+    function showRole() {
+      const e = document.getElementById("role-text");
+      e.classList.remove("blur-role");
+      setTimeout(()=>e.classList.add("blur-role"),1200);
+    }
 
-                    <!-- 阿瓦隆投票按钮 -->
-                    <div id="avalonVoteBtn">
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="voteAgree()" class="py-3 agree text-white rounded-lg font-bold">✅ 同意队伍</button>
-                            <button onclick="voteDisagree()" class="py-3 disagree text-white rounded-lg font-bold">❌ 不同意</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button onclick="voteSuccess()" class="py-3 success text-white rounded-lg font-bold">✅ 任务成功</button>
-                            <button onclick="voteFail()" class="py-3 fail text-white rounded-lg font-bold">❌ 任务失败</button>
-                        </div>
-                    </div>
+    // 主机创建
+    function hostCreateGame() {
+      const type = document.getElementById("game-type").value;
+      const cnt = Number(document.getElementById("player-count").value);
+      if(cnt<3||cnt>20){toast("人数3-20");return;}
+      const code = String(Math.floor(1000+Math.random()*9000));
+      const pool = [...roles[type]];
+      while(pool.length<cnt)pool.push(...roles[type]);
+      const list = pool.slice(0,cnt).sort(()=>Math.random()-0.5);
+      room = { code, type, total:cnt, roles:list };
+      voted = new Set();
+      outSeats = new Set();
+      sheriff = null;
+      document.getElementById("room-code").textContent = code;
+      document.getElementById("host-room-info").classList.remove("hidden");
+      toast("创建成功！验证码："+code);
+    }
 
-                    <!-- 狼人杀投票按钮 -->
-                    <div id="werewolfVoteBtn" class="hidden space-y-2">
-                        <p class="text-xs text-gray-500">警长竞选：选择支持玩家</p>
-                        <div id="sheriffBtnBox" class="grid grid-cols-3 gap-2"></div>
-                        <p class="text-xs text-gray-500 mt-2">放逐投票：选择投出玩家 / 弃票</p>
-                        <div id="outBtnBox" class="grid grid-cols-3 gap-2"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    // 玩家获取身份
+    function userGetRole() {
+      if(!room){toast("房间未创建");return;}
+      const code = document.getElementById("user-code").value.trim();
+      const seat = Number(document.getElementById("user-seat").value);
+      if(code!==room.code||seat<1||seat>room.total){toast("信息错误");return;}
+      if(outSeats.has(seat)){toast("你已出局");return;}
+      roleTemp = room.roles[seat-1];
+      const card = document.getElementById("role-card");
+      const txt = document.getElementById("role-text");
+      txt.textContent = roleTemp;
+      txt.classList.add("blur-role");
+      card.classList.remove("hidden");
+    }
 
-        <!-- 页面3：游戏规则 -->
-        <section id="page-rule" class="page hidden">
-            <h2 class="text-xl font-bold mb-4">游戏简要规则</h2>
-            <div class="space-y-4">
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
-                    <h3 class="font-bold">🔮 阿瓦隆</h3>
-                    <p class="text-sm mt-2">好人阵营：梅林、派西维尔、忠臣；坏人阵营：莫德雷德、刺客、莫甘娜、邪恶爪牙。<br>流程：选队伍→全员投票同意/反对→任务玩家投成功/失败。<br>胜利：好人3任务成功+梅林不被刺杀；坏人3任务失败或刺杀梅林成功。</p>
-                </div>
-                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow">
-                    <h3 class="font-bold">🐺 狼人杀</h3>
-                    <p class="text-sm mt-2">角色：狼人、平民、预言家、女巫、猎人。<br>流程：夜晚狼人刀人 → 白天【警长竞选投票】→ 发言 → 【放逐投票】投出玩家。<br>胜利：好人投出所有狼人；狼人杀光好人。</p>
-                </div>
-            </div>
-        </section>
-    </main>
+    // 投票 - 主持人开启
+    function hostStartSheriffVote() {
+      if(!room||room.type!=="werewolf"){toast("请先创建狼人杀");return;}
+      const vcode = String(Math.floor(1000+Math.random()*9000));
+      voteSession = { type:"sheriff", code:vcode, total:room.total, votes:{} };
+      for(let i=1;i<=room.total;i++)voteSession.votes[i]=0;
+      document.getElementById("vote-code").textContent = vcode;
+      document.getElementById("vote-result").innerHTML = "";
+      voted = new Set();
+      toast("警长投票已开启："+vcode);
+    }
 
-    <script>
-        const $ = s => document.querySelector(s);
-        let gameData = {};
-        let voteData = {};
+    function hostStartExileVote() {
+      if(!room||room.type!=="werewolf")return;
+      const targets = document.getElementById("vote-targets").value.trim().split(/\s+/).map(Number).filter(n=>n>0);
+      if(targets.length===0){toast("输入放逐编号");return;}
+      const vcode = String(Math.floor(1000+Math.random()*9000));
+      voteSession = { type:"exile", code:vcode, targets, votes:{} };
+      targets.forEach(t=>voteSession.votes[t]=0);
+      document.getElementById("vote-code").textContent = vcode;
+      document.getElementById("vote-result").innerHTML = "";
+      voted = new Set();
+      toast("放逐投票开启");
+    }
 
-        // 消息提示
-        function toast(msg) {
-            const t = $('#toast');
-            t.innerText = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2000);
+    function hostStartTeamVote() {
+      if(!room||room.type!=="avalon")return;
+      const vcode = String(Math.floor(1000+Math.random()*9000));
+      voteSession = { type:"team", code:vcode, yes:0, no:0 };
+      document.getElementById("vote-code").textContent = vcode;
+      document.getElementById("vote-result").innerHTML = "同意：0 / 反对：0";
+      voted = new Set();
+      toast("组队投票开启");
+    }
+
+    function hostStartQuestVote() {
+      if(!room||room.type!=="avalon")return;
+      const vcode = String(Math.floor(1000+Math.random()*9000));
+      voteSession = { type:"quest", code:vcode, fail:0 };
+      document.getElementById("vote-code").textContent = vcode;
+      document.getElementById("vote-result").innerHTML = "失败票：0";
+      voted = new Set();
+      toast("任务投票开启");
+    }
+
+    // 玩家投票渲染
+    document.getElementById("user-vote-code").addEventListener("input",function(){
+      const vc = this.value.trim();
+      if(!voteSession||voteSession.code!==vc){
+        document.getElementById("vote-buttons").innerHTML = "";
+        return;
+      }
+      const box = document.getElementById("vote-buttons");
+      box.innerHTML = "";
+      if(voteSession.type==="sheriff"){
+        for(let i=1;i<=room.total;i++){
+          const b = document.createElement("button");
+          b.className = "bg-vote text-white p-2 rounded";
+          b.textContent = i+"号";
+          b.onclick = ()=>doVote(i);
+          box.appendChild(b);
         }
+      }
+      if(voteSession.type==="exile"){
+        voteSession.targets.forEach(t=>{
+          const b = document.createElement("button");
+          b.className = "bg-danger text-white p-2 rounded";
+          b.textContent = t+"号";
+          b.onclick = ()=>doVote(t);
+          box.appendChild(b);
+        });
+      }
+      if(voteSession.type==="team"){
+        const by = document.createElement("button");
+        by.className = "bg-success text-white p-2 rounded";
+        by.textContent = "同意";
+        by.onclick = ()=>doVote("yes");
+        const bn = document.createElement("button");
+        bn.className = "bg-danger text-white p-2 rounded";
+        bn.textContent = "反对";
+        bn.onclick = ()=>doVote("no");
+        box.append(by,bn);
+      }
+      if(voteSession.type==="quest"){
+        const bs = document.createElement("button");
+        bs.className = "bg-success text-white p-2 rounded";
+        bs.textContent = "成功";
+        bs.onclick = ()=>doVote("success");
+        const bf = document.createElement("button");
+        bf.className = "bg-danger text-white p-2 rounded";
+        bf.textContent = "失败";
+        bf.onclick = ()=>doVote("fail");
+        box.append(bs,bf);
+      }
+    });
 
-        // 页面切换
-        function switchPage(id) {
-            document.querySelectorAll('.page').forEach(el => el.classList.remove('block'));
-            document.getElementById('page-' + id).classList.add('block');
+    // 投票执行
+    function doVote(value) {
+      const seat = Number(document.getElementById("user-seat").value);
+      if(!seat||outSeats.has(seat)){toast("无法投票");return;}
+      if(voted.has(seat)){toast("已投过票");return;}
+      voted.add(seat);
+      if(voteSession.type==="sheriff"){
+        voteSession.votes[value]++;
+        let html = "";
+        for(let i=1;i<=room.total;i++)html += `${i}号：${voteSession.votes[i]}票<br>`;
+        document.getElementById("vote-result").innerHTML = html;
+      }
+      if(voteSession.type==="exile"){
+        voteSession.votes[value]++;
+        let html = "";
+        voteSession.targets.forEach(t=>html += `${t}号：${voteSession.votes[t]}票<br>`);
+        document.getElementById("vote-result").innerHTML = html;
+      }
+      if(voteSession.type==="team"){
+        if(value==="yes")voteSession.yes++;
+        else voteSession.no++;
+        document.getElementById("vote-result").innerHTML = `同意：${voteSession.yes} / 反对：${voteSession.no}`;
+      }
+      if(voteSession.type==="quest"){
+        if(value==="fail")voteSession.fail++;
+        document.getElementById("vote-result").innerHTML = `失败票：${voteSession.fail}`;
+      }
+      toast("投票成功");
+    }
 
-            // 切换游戏面板
-            const game = $('#voteGameSel').value;
-            if(game === 'avalon'){
-                $('#avalonVoteCtrl').classList.remove('hidden');
-                $('#werewolfVoteCtrl').classList.add('hidden');
-                $('#avalonVoteBtn').classList.remove('hidden');
-                $('#werewolfVoteBtn').classList.add('hidden');
-            }else{
-                $('#avalonVoteCtrl').classList.add('hidden');
-                $('#werewolfVoteCtrl').classList.remove('hidden');
-                $('#avalonVoteBtn').classList.add('hidden');
-                $('#werewolfVoteBtn').classList.remove('hidden');
-            }
-        }
+    // 主持人功能
+    function hostMarkOut() {
+      const s = Number(document.getElementById("mark-out-seat").value);
+      if(!s||!room||s<1||s>room.total){toast("错误");return;}
+      outSeats.add(s);
+      toast(`已标记${s}号出局`);
+    }
 
-        // 身份池配置
-        const roleConfig = {
-            avalon: ["梅林","派西维尔","忠臣","忠臣","莫德雷德","刺客","莫甘娜","邪恶爪牙"],
-            werewolf: ["狼人","狼人","平民","平民","平民","预言家","女巫","猎人"]
-        };
+    function hostResetRoom() {
+      room = null; voteSession = null; voted = new Set(); outSeats = new Set(); sheriff = null;
+      document.getElementById("host-room-info").classList.add("hidden");
+      toast("已重置整局");
+    }
 
-        // 数组打乱
-        function shuffle(arr) {
-            let a = [...arr];
-            for (let i = a.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [a[i], a[j]] = [a[j], a[i]];
-            }
-            return a;
-        }
-
-        // 主持人：生成本局身份 + 4位验证码
-        function createGameRole() {
-            const gameKey = $('#hostGameSel').value;
-            const num = parseInt($('#hostPlayerNum').value);
-            if (isNaN(num) || num < 3 || num > 20) {
-                toast("人数范围：3~20人");
-                return;
-            }
-            const code = String(Math.floor(1000 + Math.random() * 9000));
-            let pool = roleConfig[gameKey];
-            let roleList = [];
-            for (let i = 0; i < num; i++) {
-                roleList.push(pool[i % pool.length]);
-            }
-            roleList = shuffle(roleList);
-
-            gameData = {
-                code: code,
-                game: gameKey,
-                total: num,
-                roles: roleList
-            };
-
-            $('#gameCode').innerText = code;
-            $('#hostCodeBox').classList.remove('hidden');
-            toast("身份已生成，请分享4位验证码");
-        }
-
-        // 玩家：查看个人身份
-        function getMyRole() {
-            const inputCode = $('#userCode').value.trim();
-            const myNum = parseInt($('#userNum').value);
-            if (inputCode.length !== 4) {
-                toast("请输入4位验证码");
-                return;
-            }
-            if (isNaN(myNum) || myNum < 1 || myNum > 20) {
-                toast("编号范围：1~20");
-                return;
-            }
-            if (gameData.code !== inputCode) {
-                toast("验证码错误");
-                return;
-            }
-            if (myNum > gameData.total) {
-                toast("编号超出总人数");
-                return;
-            }
-            $('#myRole').innerText = gameData.roles[myNum - 1];
-            $('#myRoleBox').classList.remove('hidden');
-        }
-
-        // ========== 通用投票校验 ==========
-        function checkVoteCode() {
-            const vcode = $('#userVoteCode').value.trim();
-            if (vcode !== voteData.vcode) {
-                toast("投票码错误");
-                return false;
-            }
-            return true;
-        }
-
-        // ========== 阿瓦隆 投票模块 ==========
-        function startTeamVote() {
-            const round = parseInt($('#roundNum').value);
-            const team = $('#teamNums').value.trim().split(/\s+/).map(Number).filter(n=>!isNaN(n));
-            if (team.length === 0) {
-                toast("请输入上车玩家编号");
-                return;
-            }
-            const vcode = String(Math.floor(1000 + Math.random() * 9000));
-            voteData = {
-                type: 'team',
-                vcode: vcode,
-                round: round,
-                team: team,
-                agree: 0,
-                disagree: 0,
-                fail: 0
-            };
-            showVoteBase();
-            $('#resultContent').innerHTML = `同意：<b>0</b> &nbsp; 反对：<b>0</b>`;
-            toast("组队投票已开启，投票码：" + vcode);
-        }
-
-        function startQuestVote() {
-            if (!voteData.vcode) {
-                toast("请先开启组队投票");
-                return;
-            }
-            voteData.type = 'quest';
-            voteData.fail = 0;
-            showVoteBase();
-            $('#resultContent').innerHTML = `任务失败票：<b>0</b>`;
-            toast("任务投票已开启，仅车上玩家可投失败票");
-        }
-
-        function voteAgree() {
-            if (!checkVoteCode()) return;
-            voteData.agree++;
-            $('#resultContent').innerHTML = `同意：<b>${voteData.agree}</b> &nbsp; 反对：<b>${voteData.disagree}</b>`;
-            toast("已投：同意队伍");
-        }
-        function voteDisagree() {
-            if (!checkVoteCode()) return;
-            voteData.disagree++;
-            $('#resultContent').innerHTML = `同意：<b>${voteData.agree}</b> &nbsp; 反对：<b>${voteData.disagree}</b>`;
-            toast("已投：不同意队伍");
-        }
-        function voteSuccess() {
-            if (!checkVoteCode()) return;
-            toast("已投：任务成功");
-        }
-        function voteFail() {
-            if (!checkVoteCode()) return;
-            voteData.fail++;
-            $('#resultContent').innerHTML = `任务失败票：<b>${voteData.fail}</b>`;
-            toast("已投：任务失败");
-        }
-
-        // ========== 狼人杀 投票模块 ==========
-        function startSheriffVote() {
-            const vcode = String(Math.floor(1000 + Math.random() * 9000));
-            const total = gameData.total || 20;
-            let targetList = [];
-            for(let i=1;i<=total;i++) targetList.push(i);
-
-            voteData = {
-                type: 'sheriff',
-                vcode: vcode,
-                targets: targetList,
-                count: {}
-            };
-            targetList.forEach(n=>voteData.count[n] = 0);
-
-            renderVoteBtn(targetList, 'sheriffBtnBox');
-            showVoteBase();
-            updateSheriffResult();
-            toast("警长竞选投票已开启，投票码：" + vcode);
-        }
-
-        function startOutVote() {
-            const vcode = String(Math.floor(1000 + Math.random() * 9000));
-            const targetStr = $('#voteTargetNums').value.trim();
-            let targetList = targetStr.split(/\s+/).map(Number).filter(n=>!isNaN(n));
-            targetList.push(0); // 0代表弃票
-
-            voteData = {
-                type: 'out',
-                vcode: vcode,
-                targets: targetList,
-                count: {}
-            };
-            targetList.forEach(n=>voteData.count[n] = 0);
-
-            renderVoteBtn(targetList, 'outBtnBox');
-            showVoteBase();
-            updateOutResult();
-            toast("放逐投票已开启，投票码：" + vcode);
-        }
-
-        // 渲染投票按钮
-        function renderVoteBtn(list, boxId) {
-            const box = document.getElementById(boxId);
-            box.innerHTML = '';
-            list.forEach(num => {
-                let txt = num === 0 ? '弃票' : num+'号';
-                let btn = document.createElement('button');
-                btn.className = 'py-2 bg-vote text-white rounded-lg text-sm';
-                btn.innerText = txt;
-                btn.onclick = () => playerVote(num);
-                box.appendChild(btn);
-            });
-        }
-
-        // 玩家投票（狼人杀通用）
-        function playerVote(num) {
-            if (!checkVoteCode()) return;
-            voteData.count[num]++;
-            if(voteData.type === 'sheriff'){
-                updateSheriffResult();
-                toast(`已投票：${num}号玩家`);
-            }else{
-                updateOutResult();
-                toast(num===0 ? '已弃票' : `已投出：${num}号玩家`);
-            }
-        }
-
-        // 更新警长投票结果
-        function updateSheriffResult() {
-            let html = '<p>警长竞选票数：</p>';
-            for(let k in voteData.count){
-                let name = k==0 ? '弃票' : k+'号';
-                html += `<p>${name}：${voteData.count[k]} 票</p>`;
-            }
-            $('#resultContent').innerHTML = html;
-        }
-        // 更新放逐投票结果
-        function updateOutResult() {
-            let html = '<p>放逐投票票数：</p>';
-            for(let k in voteData.count){
-                let name = k==0 ? '弃票' : k+'号';
-                html += `<p>${name}：${voteData.count[k]} 票</p>`;
-            }
-            $('#resultContent').innerHTML = html;
-        }
-
-        // 展示投票码与结果区
-        function showVoteBase() {
-            $('#voteCode').innerText = voteData.vcode;
-            $('#voteCodeBox').classList.remove('hidden');
-            $('#voteResultBox').classList.remove('hidden');
-        }
-
-        // 初始化
-        window.onload = function(){
-            switchPage('home');
-        }
-    </script>
+    function hostTransferBadge() {
+      const t = prompt("输入警徽目标编号，0=撕毁");
+      if(!t)return;
+      const num = Number(t);
+      if(num===0){sheriff=null;toast("已撕警徽");}
+      else{sheriff=num;toast(`${num}号获得警徽`);}
+    }
+  </script>
 </body>
 </html>
